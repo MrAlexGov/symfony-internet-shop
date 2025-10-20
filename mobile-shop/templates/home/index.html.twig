@@ -4,7 +4,7 @@
 
 {% block body %}
     <!-- Hero Section -->
-    <div class="jumbotron bg-primary text-white rounded-3 mb-5">
+    <div class="jumbotron bg-primary text-white rounded-3 mb-5" id="about">
         <div class="container py-5">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -16,10 +16,40 @@
                         Лучший выбор мобильных телефонов и аксессуаров по выгодным ценам.
                         Оригинальная продукция с гарантией качества.
                     </p>
-                    <a href="#catalog" class="btn btn-light btn-lg">
-                        <i class="fas fa-shopping-bag me-2"></i>
-                        Перейти к покупкам
-                    </a>
+                    <div class="d-flex gap-2 mb-3">
+                        <a href="{{ path('app_catalog') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-shopping-bag me-2"></i>
+                            Перейти к покупкам
+                        </a>
+                        {% if app.user %}
+                            <div class="btn-group">
+                                <button class="btn btn-outline-light btn-lg dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-star me-2"></i>
+                                    Быстрые действия
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ path('app_cart') }}">
+                                        <i class="fas fa-shopping-cart me-2"></i>Корзина
+                                        {% if app.user.cart and not app.user.cart.isEmpty %}
+                                            <span class="badge bg-primary ms-2">{{ app.user.cart.totalItems }}</span>
+                                        {% endif %}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('app_wishlist') }}">
+                                        <i class="fas fa-heart me-2"></i>Избранное
+                                        {% if app.user.wishlist and not app.user.wishlist.isEmpty %}
+                                            <span class="badge bg-danger ms-2">{{ app.user.wishlist.totalItems }}</span>
+                                        {% endif %}
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{{ path('app_compare') }}">
+                                        <i class="fas fa-balance-scale me-2"></i>Сравнение
+                                        {% if app.user.compare and not app.user.compare.isEmpty %}
+                                            <span class="badge bg-info ms-2">{{ app.user.compare.totalItems }}</span>
+                                        {% endif %}
+                                    </a></li>
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="col-lg-6">
                     <img src="https://via.placeholder.com/600x400/007bff/ffffff?text=%D0%9C%D0%BE%D0%B1%D0%B8%D0%BB%D1%8C%D0%BD%D1%8B%D0%B5+%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD%D1%8B"
@@ -80,45 +110,25 @@
     </div>
 
     <div class="row">
-        <div class="col-md-3 mb-4">
-            <div class="card category-card">
-                <div class="card-body text-center">
-                    <i class="fab fa-apple fa-4x text-secondary mb-3"></i>
-                    <h6 class="card-title">iPhone</h6>
-                    <p class="card-text text-muted">Смартфоны Apple</p>
-                </div>
+        {% for category in popular_categories %}
+            <div class="col-md-3 mb-4">
+                <a href="{{ path('app_catalog_category', {'slug': category.slug}) }}" class="text-decoration-none">
+                    <div class="card category-card h-100">
+                        <div class="card-body text-center">
+                            {% if category.icon %}
+                                <i class="{{ category.icon }} fa-4x text-primary mb-3"></i>
+                            {% else %}
+                                <i class="fas fa-mobile-alt fa-4x text-primary mb-3"></i>
+                            {% endif %}
+                            <h6 class="card-title">{{ category.name }}</h6>
+                            {% if category.description %}
+                                <p class="card-text text-muted">{{ category.description|length > 50 ? category.description|slice(0, 50) ~ '...' : category.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
             </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card category-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-mobile-alt fa-4x text-success mb-3"></i>
-                    <h6 class="card-title">Android</h6>
-                    <p class="card-text text-muted">Смартфоны на Android</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card category-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-headphones fa-4x text-warning mb-3"></i>
-                    <h6 class="card-title">Аксессуары</h6>
-                    <p class="card-text text-muted">Чехлы, наушники, зарядки</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 mb-4">
-            <div class="card category-card">
-                <div class="card-body text-center">
-                    <i class="fas fa-battery-half fa-4x text-danger mb-3"></i>
-                    <h6 class="card-title">Аккумуляторы</h6>
-                    <p class="card-text text-muted">Внешние батареи и зарядки</p>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
     <!-- Featured Products -->
@@ -132,26 +142,58 @@
     </div>
 
     <div class="row">
-        {% for i in 1..4 %}
+        {% for product in featured_products %}
             <div class="col-md-3 mb-4">
                 <div class="card product-card h-100">
                     <div class="product-image">
-                        <img src="https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%A2%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD+{{ i }}"
-                             class="card-img-top"
-                             alt="Телефон {{ i }}">
+                        {% if product.mainImage %}
+                            <img src="{{ asset('uploads/products/' ~ product.mainImage) }}"
+                                 class="card-img-top"
+                                 alt="{{ product.name }}"
+                                 onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                 class="card-img-top"
+                                 alt="{{ product.name }}"
+                                 onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                        {% endif %}
+                        {% if product.isFeatured %}
+                            <div class="featured-badge">
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-star me-1"></i>Хит
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="card-body d-flex flex-column">
-                        <h6 class="card-title">Смартфон {{ i }}</h6>
+                        <h6 class="card-title">{{ product.name }}</h6>
                         <p class="card-text text-muted flex-grow-1">
-                            Отличный смартфон с современными характеристиками
+                            {{ product.brand.name }} • {{ product.category.name }}
                         </p>
-                        <div class="product-price">
-                            <span class="price">₽45,990</span>
+                        {% if product.shortDescription %}
+                            <p class="card-text small text-muted mb-2">
+                                {{ product.shortDescription|length > 60 ? product.shortDescription|slice(0, 60) ~ '...' : product.shortDescription }}
+                            </p>
+                        {% endif %}
+                        <div class="product-price mb-2">
+                            <span class="price fs-5 fw-bold text-primary">{{ product.price }} ₽</span>
+                            {% if product.oldPrice %}
+                                <span class="old-price text-muted text-decoration-line-through ms-2">
+                                    {{ product.oldPrice }} ₽
+                                </span>
+                            {% endif %}
                         </div>
-                        <button class="btn btn-primary mt-2">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            В корзину
-                        </button>
+                        <div class="product-actions mt-auto">
+                            <a href="{{ path('app_product_show', {'slug': product.slug}) }}"
+                               class="btn btn-outline-primary btn-sm me-2">
+                                <i class="fas fa-eye me-1"></i>
+                                Подробнее
+                            </a>
+                            <button class="btn btn-primary btn-sm">
+                                <i class="fas fa-shopping-cart me-1"></i>
+                                В корзину
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -159,7 +201,7 @@
     </div>
 
     <!-- Newsletter Section -->
-    <div class="row mt-5">
+    <div class="row mt-5" id="contacts">
         <div class="col-12">
             <div class="bg-light rounded-3 p-5 text-center">
                 <h3>
@@ -224,7 +266,21 @@
         .product-price .price {
             font-size: 1.25rem;
             font-weight: bold;
-            color: #dc3545;
+            color: #007bff;
+        }
+
+        .product-price .old-price {
+            font-size: 0.9rem;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .product-actions .btn {
+            flex: 1;
         }
     </style>
 {% endblock %}

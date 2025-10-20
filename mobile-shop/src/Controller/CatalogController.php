@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\ProductRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\BrandRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +18,8 @@ final class CatalogController extends AbstractController
         Request $request,
         ProductRepository $productRepository,
         CategoryRepository $categoryRepository,
-        BrandRepository $brandRepository
+        BrandRepository $brandRepository,
+        PaginatorInterface $paginator
     ): Response {
         // Получаем параметры фильтрации из запроса
         $search = $request->query->get('search');
@@ -27,13 +29,14 @@ final class CatalogController extends AbstractController
         $maxPrice = $request->query->get('max_price');
         $sort = $request->query->get('sort', 'name');
         $order = $request->query->get('order', 'ASC');
+        $page = $request->query->getInt('page', 1);
 
         // Получаем все категории и бренды для фильтров
         $categories = $categoryRepository->findBy(['isActive' => true], ['sortOrder' => 'ASC', 'name' => 'ASC']);
         $brands = $brandRepository->findBy(['isActive' => true], ['name' => 'ASC']);
 
-        // Получаем товары с примененными фильтрами
-        $products = $productRepository->findWithFilters(
+        // Получаем товары с примененными фильтрами (без пагинации для подсчета общего количества)
+        $allProducts = $productRepository->findWithFilters(
             $search,
             $categoryId,
             $brandId,
@@ -41,6 +44,13 @@ final class CatalogController extends AbstractController
             $maxPrice,
             $sort,
             $order
+        );
+
+        // Применяем пагинацию
+        $products = $paginator->paginate(
+            $allProducts,
+            $page,
+            12 // товаров на страницу
         );
 
         return $this->render('catalog/index.html.twig', [

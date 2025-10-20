@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Документация
+README.md
+*.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Symfony
+var/*
+!var/cache
+!var/log
+vendor
+symfony.lock
+
+# Тесты и разработка
+tests/
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Логи
+*.log
+
+# Временные файлы
+*.tmp
+*.temp

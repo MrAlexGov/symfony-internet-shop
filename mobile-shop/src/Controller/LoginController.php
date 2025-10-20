@@ -27,4 +27,22 @@ final class LoginController extends AbstractController
             'error' => $error,
         ]);
     }
+
+    #[Route('/check-login', name: 'app_check_login', methods: ['POST'])]
+    public function checkLogin(): Response
+    {
+        // Этот метод обрабатывает форму аутентификации
+        // Symfony Security обрабатывает аутентификацию автоматически
+        // Если аутентификация успешна, пользователь будет перенаправлен на default_target_path
+        // Если неудачна, Symfony автоматически перенаправит на login_path с ошибкой
+
+        throw new \LogicException('Этот метод не должен вызываться напрямую. Symfony Security обрабатывает аутентификацию автоматически.');
+    }
+
+    #[Route('/logout', name: 'app_logout')]
+    public function logout(): Response
+    {
+        // Symfony Security обрабатывает logout автоматически
+        throw new \LogicException('Этот метод не должен вызываться напрямую. Symfony Security обрабатывает logout автоматически.');
+    }
 }

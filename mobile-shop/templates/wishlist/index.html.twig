@@ -1,0 +1,222 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Избранное - Mobile Shop{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-heart text-danger me-2"></i>
+                Избранное
+            </h1>
+        </div>
+    </div>
+
+    {% if wishlist.isEmpty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-heart fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted">Избранное пусто</h3>
+                    <p class="text-muted mb-4">Добавьте товары в избранное, чтобы быстро найти их позже</p>
+                    <a href="{{ path('app_catalog') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list me-2"></i>
+                        Перейти к каталогу
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <!-- Список товаров в избранном -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heart me-2"></i>
+                            Избранные товары ({{ wishlist.totalItems }} шт.)
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row">
+                            {% for item in wishlist.items %}
+                                <div class="col-md-3 mb-4">
+                                    <div class="card product-card h-100">
+                                        <div class="product-image">
+                                            {% if item.product.mainImage %}
+                                                <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
+                                                     class="card-img-top"
+                                                     alt="{{ item.product.name }}"
+                                                     onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                            {% else %}
+                                                <img src="https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                                     class="card-img-top"
+                                                     alt="{{ item.product.name }}"
+                                                     onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                            {% endif %}
+                                            {% if item.product.isFeatured %}
+                                                <div class="featured-badge">
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-star me-1"></i>Хит
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="wishlist-badge">
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-heart me-1"></i>В избранном
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title">{{ item.product.name }}</h6>
+                                            <p class="card-text text-muted flex-grow-1">
+                                                {{ item.product.brand.name }} • {{ item.product.category.name }}
+                                            </p>
+
+                                            {% if item.product.shortDescription %}
+                                                <p class="card-text small text-muted mb-2">
+                                                    {{ item.product.shortDescription|length > 60 ? item.product.shortDescription|slice(0, 60) ~ '...' : item.product.shortDescription }}
+                                                </p>
+                                            {% endif %}
+
+                                            <div class="product-price mb-2">
+                                                <span class="price fs-5 fw-bold text-primary">{{ item.product.price }} ₽</span>
+                                                {% if item.product.oldPrice %}
+                                                    <span class="old-price text-muted text-decoration-line-through ms-2">
+                                                        {{ item.product.oldPrice }} ₽
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="product-actions mt-auto">
+                                                <a href="{{ path('app_product_show', {'slug': item.product.slug}) }}"
+                                                   class="btn btn-outline-primary btn-sm me-2">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Подробнее
+                                                </a>
+                                                <button class="btn btn-primary btn-sm me-2" onclick="addToCart({{ item.product.id }})">
+                                                    <i class="fas fa-shopping-cart me-1"></i>
+                                                    В корзину
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" onclick="removeFromWishlist({{ item.id }})">
+                                                    <i class="fas fa-heart-broken me-1"></i>
+                                                    Удалить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function removeFromWishlist(itemId) {
+            if (!confirm('Вы действительно хотите удалить этот товар из избранного?')) {
+                return;
+            }
+
+            fetch(`{{ path('app_wishlist_remove', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка при удалении товара');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при удалении товара');
+            });
+        }
+
+        function addToCart(productId) {
+            fetch(`{{ path('app_cart_add', {'id': '__PRODUCT_ID__'}) }}`.replace('__PRODUCT_ID__', productId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'quantity=1'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Товар добавлен в корзину!');
+                } else {
+                    alert(data.message || 'Ошибка при добавлении в корзину');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при добавлении в корзину');
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            height: 200px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            position: relative;
+        }
+
+        .product-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .wishlist-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .product-price .price {
+            font-size: 1.25rem;
+        }
+
+        .product-price .old-price {
+            font-size: 0.9rem;
+        }
+
+        .product-actions .btn {
+            flex: 1;
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }} - Mobile Shop{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <!-- Хлебные крошки -->
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_home') }}">
+                            <i class="fas fa-home me-1"></i>Главная
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ path('app_catalog') }}">Каталог</a>
+                    </li>
+                    {% if product.category %}
+                        <li class="breadcrumb-item">
+                            <a href="{{ path('app_catalog_category', {'slug': product.category.slug}) }}">
+                                {{ product.category.name }}
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">{{ product.name }}</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Детали товара -->
+        <div class="col-lg-8">
+            <div class="product-details">
+                <!-- Изображения товара -->
+                <div class="product-images mb-4">
+                    <div class="main-image mb-3">
+                        {% if product.mainImage %}
+                            <img src="{{ asset('uploads/products/' ~ product.mainImage) }}"
+                                 class="img-fluid rounded"
+                                 alt="{{ product.name }}"
+                                 id="mainProductImage"
+                                 onerror="this.src='https://via.placeholder.com/600x400/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                        {% else %}
+                            <img src="https://via.placeholder.com/600x400/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                 class="img-fluid rounded"
+                                 alt="{{ product.name }}"
+                                 id="mainProductImage"
+                                 onerror="this.src='https://via.placeholder.com/600x400/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                        {% endif %}
+                    </div>
+                    {% if product.images %}
+                        <div class="thumbnail-images d-flex gap-2 flex-wrap">
+                            <div class="thumbnail active" data-image="{{ asset('uploads/products/' ~ product.mainImage) }}">
+                                {% if product.mainImage %}
+                                    <img src="{{ asset('uploads/products/' ~ product.mainImage) }}"
+                                         class="img-thumbnail"
+                                         alt="{{ product.name }}">
+                                {% endif %}
+                            </div>
+                            {% for image in product.images %}
+                                <div class="thumbnail" data-image="{{ asset('uploads/products/' ~ image.filename) }}">
+                                    <img src="{{ asset('uploads/products/' ~ image.filename) }}"
+                                         class="img-thumbnail"
+                                         alt="{{ product.name }}">
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Информация о товаре -->
+                <div class="product-info">
+                    <h1 class="product-title mb-3">{{ product.name }}</h1>
+
+                    <div class="product-meta d-flex gap-3 mb-4">
+                        <span class="badge bg-primary">{{ product.brand.name }}</span>
+                        {% if product.category %}
+                            <span class="badge bg-secondary">{{ product.category.name }}</span>
+                        {% endif %}
+                        <span class="badge {% if product.stock > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if product.stock > 0 %}В наличии ({{ product.stock }}){% else %}Нет в наличии{% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Рейтинг -->
+                    <div class="product-rating mb-4">
+                        <div class="rating-stars">
+                            {% set rating = product.getAverageRating() %}
+                            {% for i in 1..5 %}
+                                <i class="fas fa-star {% if i <= rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                            {% endfor %}
+                            <span class="ms-2 text-muted">({{ rating }} из 5)</span>
+                        </div>
+                    </div>
+
+                    <!-- Цена -->
+                    <div class="product-price mb-4">
+                        <div class="current-price fs-3 fw-bold text-primary">{{ product.price }} ₽</div>
+                        {% if product.oldPrice %}
+                            <div class="old-price text-muted text-decoration-line-through fs-5">
+                                {{ product.oldPrice }} ₽
+                            </div>
+                            {% set discount = ((product.oldPrice - product.price) / product.oldPrice * 100)|round %}
+                            <div class="discount-badge badge bg-danger ms-2">
+                                -{{ discount }}%
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="product-description mb-4">
+                        <h5>Описание</h5>
+                        <div class="content">
+                            {{ product.description|raw }}
+                        </div>
+                    </div>
+
+                    <!-- Кнопки действий -->
+                    <div class="product-actions d-flex gap-3">
+                        <button class="btn btn-primary btn-lg flex-fill" {% if not product.isInStock %}disabled{% endif %}>
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            {% if product.isInStock %}Добавить в корзину{% else %}Нет в наличии{% endif %}
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-heart me-2"></i>
+                            В избранное
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-balance-scale me-2"></i>
+                            Сравнить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Боковая панель -->
+        <div class="col-lg-4">
+            <!-- Характеристики -->
+            {% if product.specifications %}
+                <div class="specifications-card card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ul me-2"></i>
+                            Характеристики
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            {% for specification in product.specifications %}
+                                <dt class="col-sm-6">{{ specification.name }}</dt>
+                                <dd class="col-sm-6">{{ specification.value }}{% if specification.unit %} {{ specification.unit }}{% endif %}</dd>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Отзывы -->
+            <div class="reviews-card card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Отзывы
+                    </h5>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>
+                        Написать отзыв
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if product.reviews %}
+                        {% for review in product.reviews %}
+                            {% if review.isApproved %}
+                                <div class="review-item mb-3 pb-3 border-bottom">
+                                    <div class="review-header d-flex justify-content-between align-items-center mb-2">
+                                        <div class="review-author">
+                                            <strong>{{ review.authorName ?: 'Анонимный пользователь' }}</strong>
+                                        </div>
+                                        <div class="review-rating">
+                                            {% for i in 1..5 %}
+                                                <i class="fas fa-star {% if i <= review.rating %}text-warning{% else %}text-muted{% endif %} small"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="review-date text-muted small mb-2">
+                                        {{ review.createdAt|date('d.m.Y H:i') }}
+                                    </div>
+                                    {% if review.comment %}
+                                        <div class="review-comment">
+                                            {{ review.comment }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">Отзывов пока нет. Будьте первым!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Переключение изображений
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const mainImage = document.getElementById('mainProductImage');
+
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', function() {
+                    // Убираем активный класс со всех миниатюр
+                    thumbnails.forEach(t => t.classList.remove('active'));
+
+                    // Добавляем активный класс текущей миниатюре
+                    this.classList.add('active');
+
+                    // Меняем главное изображение
+                    const newImage = this.dataset.image;
+                    mainImage.src = newImage;
+                });
+            });
+
+            // Добавление в корзину
+            const addToCartBtn = document.querySelector('.btn-primary.btn-lg');
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', function() {
+                    // Здесь будет логика добавления в корзину
+                    this.innerHTML = '<i class="fas fa-check me-2"></i>Добавлено';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Добавить в корзину';
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-primary');
+                    }, 2000);
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .product-images {
+            position: sticky;
+            top: 20px;
+        }
+
+        .main-image img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+        }
+
+        .thumbnail {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+        }
+
+        .thumbnail.active {
+            border-color: #007bff;
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-price .current-price {
+            color: #dc3545 !important;
+        }
+
+        .product-price .old-price {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .discount-badge {
+            font-size: 0.8rem;
+        }
+
+        .specifications-card dt {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .specifications-card dd {
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-item {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .rating-stars .fa-star {
+            color: #ffc107 !important;
+        }
+
+        .rating-stars .fa-star.text-muted {
+            color: #dee2e6 !important;
+        }
+
+        .product-actions .btn {
+            min-width: 150px;
+        }
+    </style>
+{% endblock %}

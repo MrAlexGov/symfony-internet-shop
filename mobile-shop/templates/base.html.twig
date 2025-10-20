@@ -37,14 +37,57 @@
                             <a class="nav-link" href="{{ path('app_home') }}">Главная</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Каталог</a>
+                            <a class="nav-link" href="{{ path('app_catalog') }}">Каталог</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">О нас</a>
+                            <a class="nav-link" href="#about">О нас</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Контакты</a>
+                            <a class="nav-link" href="#contacts">Контакты</a>
                         </li>
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        {% if app.user %}
+                            <!-- Корзина -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link position-relative d-flex align-items-center" href="{{ path('app_cart') }}">
+                                    <i class="fas fa-shopping-cart me-1"></i>
+                                    <span>Корзина</span>
+                                    {% if app.user.cart and not app.user.cart.isEmpty %}
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ app.user.cart.totalItems }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+
+                            <!-- Избранное -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link position-relative d-flex align-items-center" href="{{ path('app_wishlist') }}">
+                                    <i class="fas fa-heart me-1"></i>
+                                    <span>Избранное</span>
+                                    {% if app.user.wishlist and not app.user.wishlist.isEmpty %}
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ app.user.wishlist.totalItems }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+
+                            <!-- Сравнение -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link position-relative d-flex align-items-center" href="{{ path('app_compare') }}">
+                                    <i class="fas fa-balance-scale me-1"></i>
+                                    <span>Сравнение</span>
+                                    {% if app.user.compare and not app.user.compare.isEmpty %}
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ app.user.compare.totalItems }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% endif %}
                     </ul>
 
                     <ul class="navbar-nav">
@@ -102,14 +145,41 @@
         <footer class="bg-dark text-light mt-5 py-4">
             <div class="container">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h5>Mobile Shop</h5>
                         <p>Лучший интернет-магазин мобильных телефонов и аксессуаров</p>
+                        <div class="mt-3">
+                            <a href="{{ path('app_cart') }}" class="text-light me-3">
+                                <i class="fas fa-shopping-cart me-1"></i>Корзина
+                            </a>
+                            <a href="{{ path('app_wishlist') }}" class="text-light me-3">
+                                <i class="fas fa-heart me-1"></i>Избранное
+                            </a>
+                            <a href="{{ path('app_compare') }}" class="text-light">
+                                <i class="fas fa-balance-scale me-1"></i>Сравнение
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <h5>Навигация</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ path('app_home') }}" class="text-light">Главная</a></li>
+                            <li><a href="{{ path('app_catalog') }}" class="text-light">Каталог товаров</a></li>
+                            <li><a href="#about" class="text-light">О нас</a></li>
+                            <li><a href="#contacts" class="text-light">Контакты</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
                         <h5>Контакты</h5>
-                        <p>Email: info@mobilshop.ru</p>
-                        <p>Телефон: +7 (495) 123-45-67</p>
+                        <p><i class="fas fa-envelope me-2"></i>Email: info@mobilshop.ru</p>
+                        <p><i class="fas fa-phone me-2"></i>Телефон: +7 (495) 123-45-67</p>
+                        <p><i class="fas fa-clock me-2"></i>Режим работы: 9:00 - 21:00</p>
+                    </div>
+                </div>
+                <hr class="my-4">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <small>&copy; 2025 Mobile Shop. Все права защищены.</small>
                     </div>
                 </div>
             </div>

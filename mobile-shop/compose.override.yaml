@@ -1,18 +1,36 @@
-
 services:
-###> doctrine/doctrine-bundle ###
+  php:
+    volumes:
+      - ./mobile-shop:/var/www/html:cached
+      # Для Xdebug в режиме разработки раскомментируйте следующую строку:
+      # - ./xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: 1
+
+  nginx:
+    volumes:
+      - ./mobile-shop:/var/www/html:cached
+
   database:
     ports:
-      - "5432"
-###< doctrine/doctrine-bundle ###
+      - "3308:3306"
 
-###> symfony/mailer ###
-  mailer:
-    image: axllent/mailpit
+  # Redis для кеширования (опционально)
+  redis:
+    image: redis:7-alpine
     ports:
-      - "1025"
-      - "8025"
-    environment:
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
-###< symfony/mailer ###
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      retries: 5
+
+  # Adminer для управления БД (опционально)
+  adminer:
+    image: adminer:4-standalone
+    ports:
+      - "8081:8080"
+    depends_on:
+      database:
+        condition: service_healthy

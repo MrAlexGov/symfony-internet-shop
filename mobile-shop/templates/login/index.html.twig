@@ -19,10 +19,12 @@
                         </div>
                     {% endif %}
 
-                    <form method="post" class="needs-validation" novalidate>
-                        {% if app.target_path %}
-                            <input type="hidden" name="_target_path" value="{{ app.target_path }}">
+                    <form method="post" action="{{ path('app_check_login') }}" class="needs-validation" novalidate>
+                        {% if app.request.get('redirect_to') %}
+                            <input type="hidden" name="_target_path" value="{{ app.request.get('redirect_to') }}">
                         {% endif %}
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                         <div class="mb-3">
                             <label for="inputEmail" class="form-label">
@@ -30,7 +32,7 @@
                             </label>
                             <input type="email"
                                    value="{{ last_username }}"
-                                   name="email"
+                                   name="_username"
                                    id="inputEmail"
                                    class="form-control"
                                    autocomplete="email"
@@ -46,7 +48,7 @@
                                 <i class="fas fa-lock me-2"></i>Пароль
                             </label>
                             <input type="password"
-                                   name="password"
+                                   name="_password"
                                    id="inputPassword"
                                    class="form-control"
                                    autocomplete="current-password"

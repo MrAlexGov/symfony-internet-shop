@@ -38,7 +38,8 @@ class ProductRepository extends ServiceEntityRepository
         ?float $minPrice = null,
         ?float $maxPrice = null,
         string $sort = 'name',
-        string $order = 'ASC'
+        string $order = 'ASC',
+        ?array $specifications = null
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->where('p.isActive = :isActive')
@@ -73,6 +74,19 @@ class ProductRepository extends ServiceEntityRepository
                 ->setParameter('maxPrice', $maxPrice);
         }
 
+        // Фильтр по характеристикам
+        if ($specifications && !empty($specifications)) {
+            foreach ($specifications as $index => $specFilter) {
+                if (!empty($specFilter['name']) && !empty($specFilter['value'])) {
+                    $qb->leftJoin('p.specifications', 'spec' . $index)
+                        ->andWhere('spec' . $index . '.name = :specName' . $index)
+                        ->andWhere('spec' . $index . '.value = :specValue' . $index)
+                        ->setParameter('specName' . $index, $specFilter['name'])
+                        ->setParameter('specValue' . $index, $specFilter['value']);
+                }
+            }
+        }
+
         // Связываем с брендом и категорией для получения полной информации
         $qb->leftJoin('p.brand', 'b')
             ->leftJoin('p.category', 'c')
@@ -89,6 +103,38 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    public function getAvailableSpecifications(): array
+    {
+        $specifications = $this->createQueryBuilder('p')
+            ->select('DISTINCT spec.name')
+            ->leftJoin('p.specifications', 'spec')
+            ->where('p.isActive = :isActive')
+            ->setParameter('isActive', true)
+            ->andWhere('spec.name IS NOT NULL')
+            ->orderBy('spec.name')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_column($specifications, 'name');
+    }
+
+    public function getSpecificationValues(string $specificationName): array
+    {
+        $values = $this->createQueryBuilder('p')
+            ->select('DISTINCT spec.value')
+            ->leftJoin('p.specifications', 'spec')
+            ->where('p.isActive = :isActive')
+            ->andWhere('spec.name = :specName')
+            ->setParameter('isActive', true)
+            ->setParameter('specName', $specificationName)
+            ->andWhere('spec.value IS NOT NULL')
+            ->orderBy('spec.value')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_column($values, 'value');
     }
 
     public function findFeatured(): array

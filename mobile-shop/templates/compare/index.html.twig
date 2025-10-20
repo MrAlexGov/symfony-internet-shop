@@ -1,0 +1,331 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Сравнение товаров - Mobile Shop{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-balance-scale text-info me-2"></i>
+                Сравнение товаров
+            </h1>
+        </div>
+    </div>
+
+    {% if compare.isEmpty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-balance-scale fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted">Нет товаров для сравнения</h3>
+                    <p class="text-muted mb-4">Добавьте товары в сравнение, чтобы увидеть их характеристики рядом</p>
+                    <a href="{{ path('app_catalog') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list me-2"></i>
+                        Перейти к каталогу
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-balance-scale me-2"></i>
+                            Сравнение товаров ({{ compare.totalItems }}/4)
+                        </h5>
+                        <button class="btn btn-outline-light btn-sm" onclick="clearCompare()">
+                            <i class="fas fa-trash me-1"></i>
+                            Очистить
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0">
+                                <tbody>
+                                    <!-- Названия товаров -->
+                                    <tr class="table-primary">
+                                        <th class="text-center" style="width: 200px;">Характеристика</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center">
+                                                <div style="max-width: 200px;">
+                                                    <strong>{{ item.product.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ item.product.brand.name }}</small>
+                                                    <br>
+                                                    <button class="btn btn-outline-danger btn-sm mt-2" onclick="removeFromCompare({{ item.id }})">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Изображения -->
+                                    <tr>
+                                        <th class="text-center align-middle">Изображение</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center">
+                                                {% if item.product.mainImage %}
+                                                    <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
+                                                         class="img-thumbnail"
+                                                         style="width: 150px; height: 150px; object-fit: cover;"
+                                                         alt="{{ item.product.name }}"
+                                                         onerror="this.src='https://via.placeholder.com/150x150/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                                {% else %}
+                                                    <img src="https://via.placeholder.com/150x150/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                                         class="img-thumbnail"
+                                                         style="width: 150px; height: 150px; object-fit: cover;"
+                                                         alt="{{ item.product.name }}"
+                                                         onerror="this.src='https://via.placeholder.com/150x150/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Цена -->
+                                    <tr>
+                                        <th class="text-center align-middle">Цена</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                <div class="fw-bold text-primary fs-5">{{ item.product.price }} ₽</div>
+                                                {% if item.product.oldPrice %}
+                                                    <div class="text-muted text-decoration-line-through">
+                                                        {{ item.product.oldPrice }} ₽
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Категория -->
+                                    <tr>
+                                        <th class="text-center align-middle">Категория</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.category.name }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Бренд -->
+                                    <tr>
+                                        <th class="text-center align-middle">Бренд</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.brand.name }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Операционная система -->
+                                    <tr>
+                                        <th class="text-center align-middle">ОС</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.operatingSystem ?: '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Процессор -->
+                                    <tr>
+                                        <th class="text-center align-middle">Процессор</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.processor ?: '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Оперативная память -->
+                                    <tr>
+                                        <th class="text-center align-middle">ОЗУ</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.ram ? item.product.ram ~ ' ГБ' : '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Встроенная память -->
+                                    <tr>
+                                        <th class="text-center align-middle">Память</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.storage ? item.product.storage ~ ' ГБ' : '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Экран -->
+                                    <tr>
+                                        <th class="text-center align-middle">Экран</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.screenSize ? item.product.screenSize ~ '"' : '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Аккумулятор -->
+                                    <tr>
+                                        <th class="text-center align-middle">Батарея</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.batteryCapacity ? item.product.batteryCapacity ~ ' мАч' : '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Цвет -->
+                                    <tr>
+                                        <th class="text-center align-middle">Цвет</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.color ?: '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Вес -->
+                                    <tr>
+                                        <th class="text-center align-middle">Вес</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                {{ item.product.weight ? item.product.weight ~ ' г' : '-' }}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+
+                                    <!-- Действия -->
+                                    <tr>
+                                        <th class="text-center align-middle">Действия</th>
+                                        {% for item in compare.items %}
+                                            <td class="text-center align-middle">
+                                                <a href="{{ path('app_product_show', {'slug': item.product.slug}) }}"
+                                                   class="btn btn-outline-primary btn-sm me-2">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Подробнее
+                                                </a>
+                                                <button class="btn btn-primary btn-sm" onclick="addToCart({{ item.product.id }})">
+                                                    <i class="fas fa-shopping-cart me-1"></i>
+                                                    В корзину
+                                                </button>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function removeFromCompare(itemId) {
+            if (!confirm('Вы действительно хотите удалить этот товар из сравнения?')) {
+                return;
+            }
+
+            fetch(`{{ path('app_compare_remove', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка при удалении товара');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при удалении товара');
+            });
+        }
+
+        function clearCompare() {
+            if (!confirm('Вы действительно хотите очистить сравнение?')) {
+                return;
+            }
+
+            fetch('{{ path('app_compare_clear') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка при очистке сравнения');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при очистке сравнения');
+            });
+        }
+
+        function addToCart(productId) {
+            fetch(`{{ path('app_cart_add', {'id': '__PRODUCT_ID__'}) }}`.replace('__PRODUCT_ID__', productId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'quantity=1'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Товар добавлен в корзину!');
+                } else {
+                    alert(data.message || 'Ошибка при добавлении в корзину');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при добавлении в корзину');
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .img-thumbnail {
+            border-radius: 0.375rem;
+        }
+
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+    </style>
+{% endblock %}

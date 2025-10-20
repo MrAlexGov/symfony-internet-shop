@@ -46,9 +46,6 @@ class Product
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $mainImage = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $images = [];
-
     // Технические характеристики мобильных телефонов
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $operatingSystem = null;
@@ -88,6 +85,15 @@ class Product
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\OneToMany(targetEntity: ProductSpecification::class, mappedBy: 'product', cascade: ['persist', 'remove'])]
+    private $specifications;
+
+    #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: 'product', cascade: ['persist', 'remove'])]
+    private $images;
+
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'product', cascade: ['persist', 'remove'])]
+    private $reviews;
 
     public function __construct()
     {
@@ -234,17 +240,6 @@ class Product
         return $this;
     }
 
-    public function getImages(): ?array
-    {
-        return $this->images;
-    }
-
-    public function setImages(?array $images): static
-    {
-        $this->images = $images;
-
-        return $this;
-    }
 
     public function getOperatingSystem(): ?string
     {
@@ -394,5 +389,48 @@ class Product
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getSpecifications()
+    {
+        return $this->specifications;
+    }
+
+    public function getImages()
+    {
+        return $this->images;
+    }
+
+    public function getReviews()
+    {
+        return $this->reviews;
+    }
+
+    public function getAverageRating(): float
+    {
+        if ($this->reviews->isEmpty()) {
+            return 0.0;
+        }
+
+        $total = 0;
+        foreach ($this->reviews as $review) {
+            if ($review->isApproved() && $review->isActive()) {
+                $total += $review->getRating();
+            }
+        }
+
+        return round($total / $this->reviews->filter(function($review) {
+            return $review->isApproved() && $review->isActive();
+        })->count(), 1);
+    }
+
+    public function isInStock(): bool
+    {
+        return $this->stock > 0;
+    }
+
+    public function getFinalPrice(): string
+    {
+        return $this->price;
     }
 }

@@ -127,12 +127,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Cart $cart = null;
 
+    #[ORM\OneToOne(targetEntity: Wishlist::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Wishlist $wishlist = null;
+
+    #[ORM\OneToOne(targetEntity: Compare::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Compare $compare = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
         $this->cart = new Cart();
         $this->cart->setUser($this);
+        $this->wishlist = new Wishlist();
+        $this->wishlist->setUser($this);
+        $this->compare = new Compare();
+        $this->compare->setUser($this);
     }
 
     public function getFirstName(): ?string
@@ -290,6 +300,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCart(?Cart $cart): static
     {
         $this->cart = $cart;
+
+        return $this;
+    }
+
+    public function getWishlist(): ?Wishlist
+    {
+        return $this->wishlist;
+    }
+
+    public function setWishlist(?Wishlist $wishlist): static
+    {
+        $this->wishlist = $wishlist;
+
+        return $this;
+    }
+
+    public function getCompare(): ?Compare
+    {
+        return $this->compare;
+    }
+
+    public function setCompare(?Compare $compare): static
+    {
+        $this->compare = $compare;
 
         return $this;
     }

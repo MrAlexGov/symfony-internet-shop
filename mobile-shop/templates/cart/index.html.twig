@@ -1,0 +1,276 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Корзина - Mobile Shop{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-shopping-cart text-primary me-2"></i>
+                Корзина
+            </h1>
+        </div>
+    </div>
+
+    {% if cart.isEmpty %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted">Корзина пуста</h3>
+                    <p class="text-muted mb-4">Добавьте товары в корзину, чтобы оформить заказ</p>
+                    <a href="{{ path('app_catalog') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list me-2"></i>
+                        Перейти к каталогу
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <!-- Список товаров в корзине -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Товары в корзине ({{ cart.totalItems }} шт.)
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% for item in cart.items %}
+                            <div class="cart-item d-flex align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="cart-item-image me-3">
+                                    {% if item.product.mainImage %}
+                                        <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
+                                             class="img-thumbnail"
+                                             style="width: 80px; height: 80px; object-fit: cover;"
+                                             alt="{{ item.product.name }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/80x80/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                             class="img-thumbnail"
+                                             style="width: 80px; height: 80px; object-fit: cover;"
+                                             alt="{{ item.product.name }}">
+                                    {% endif %}
+                                </div>
+
+                                <div class="cart-item-info flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="{{ path('app_product_show', {'slug': item.product.slug}) }}" class="text-decoration-none">
+                                            {{ item.product.name }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">{{ item.product.brand.name }}</p>
+                                    <div class="cart-item-price text-primary fw-bold">
+                                        {{ item.price }} ₽
+                                    </div>
+                                </div>
+
+                                <div class="cart-item-quantity d-flex align-items-center me-3">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, {{ item.quantity - 1 }})">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span class="mx-3 fw-bold" id="quantity-{{ item.id }}">{{ item.quantity }}</span>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, {{ item.quantity + 1 }})">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+
+                                <div class="cart-item-total text-end me-3">
+                                    <div class="fw-bold text-primary" id="total-{{ item.id }}">{{ item.total }} ₽</div>
+                                </div>
+
+                                <div class="cart-item-actions">
+                                    <button class="btn btn-outline-danger btn-sm" onclick="removeFromCart({{ item.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Итого и оформление заказа -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calculator me-2"></i>
+                            Итого
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Товары ({{ cart.totalItems }} шт.):</span>
+                            <span class="fw-bold">{{ cart.total }} ₽</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Доставка:</span>
+                            <span class="text-success">Бесплатно</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>К оплате:</strong>
+                            <strong class="text-primary fs-5">{{ cart.total }} ₽</strong>
+                        </div>
+
+                        <a href="{{ path('app_checkout') }}" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-credit-card me-2"></i>
+                            Оформить заказ
+                        </a>
+
+                        <button class="btn btn-outline-danger w-100 mb-3" onclick="clearCart()">
+                            <i class="fas fa-trash me-2"></i>
+                            Очистить корзину
+                        </button>
+
+                        <a href="{{ path('app_catalog') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Продолжить покупки
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) return;
+
+            fetch(`{{ path('app_cart_update', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `quantity=${newQuantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById(`quantity-${itemId}`).textContent = newQuantity;
+                    document.getElementById(`total-${itemId}`).textContent = data.itemTotal + ' ₽';
+
+                    // Обновляем общую сумму в корзине
+                    updateCartTotal(data.cartTotal, data.cartItemsCount);
+                } else {
+                    alert(data.message || 'Ошибка при обновлении количества');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при обновлении количества');
+            });
+        }
+
+        function removeFromCart(itemId) {
+            if (!confirm('Вы действительно хотите удалить этот товар из корзины?')) {
+                return;
+            }
+
+            fetch(`{{ path('app_cart_remove', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Удаляем элемент из DOM
+                    const cartItem = document.getElementById(`cart-item-${itemId}`);
+                    if (cartItem) {
+                        cartItem.remove();
+                    }
+
+                    updateCartTotal(data.cartTotal, data.cartItemsCount);
+
+                    // Если корзина пуста, перезагружаем страницу
+                    if (data.cartItemsCount === 0) {
+                        location.reload();
+                    }
+                } else {
+                    alert(data.message || 'Ошибка при удалении товара');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при удалении товара');
+            });
+        }
+
+        function clearCart() {
+            if (!confirm('Вы действительно хотите очистить корзину?')) {
+                return;
+            }
+
+            fetch('{{ path('app_cart_clear') }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Ошибка при очистке корзины');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при очистке корзины');
+            });
+        }
+
+        function updateCartTotal(total, itemsCount) {
+            // Обновляем элементы интерфейса с общими данными корзины
+            const totalElements = document.querySelectorAll('.cart-total');
+            const countElements = document.querySelectorAll('.cart-count');
+
+            totalElements.forEach(element => {
+                element.textContent = total + ' ₽';
+            });
+
+            countElements.forEach(element => {
+                element.textContent = itemsCount;
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .cart-item {
+            transition: background-color 0.3s ease;
+        }
+
+        .cart-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .cart-item-image img {
+            border-radius: 0.375rem;
+        }
+
+        .cart-item-quantity {
+            min-width: 120px;
+        }
+
+        .cart-item-total {
+            min-width: 80px;
+        }
+
+        .cart-item-actions {
+            min-width: 40px;
+        }
+    </style>
+{% endblock %}
