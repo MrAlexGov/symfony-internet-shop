@@ -1,0 +1,289 @@
+# Подробный промпт для создания интернет-магазина мобильных телефонов на Symfony
+
+## Общее описание проекта
+Создать полнофункциональный интернет-магазин по продаже мобильных телефонов и аксессуаров на основе фреймворка Symfony 6.x+. Магазин должен включать каталог товаров, систему управления заказами, пользовательские аккаунты, административную панель и интеграцию с платежными системами.
+
+## Технические требования
+
+### 1. Технологический стек
+- **Фреймворк**: Symfony 6.4+
+- **База данных**: MySQL 8.0+ или PostgreSQL 14+
+- **Кеширование**: Redis
+- **Очереди**: Symfony Messenger с RabbitMQ
+- **Поиск**: Elasticsearch 8.x
+- **Фронтенд**: Twig, Bootstrap 5, JavaScript (ES6+)
+- **Платежная система**: Stripe/ЮKassa/CloudPayments
+- **Деплой**: Docker + Docker Compose
+
+### 2. Функциональные модули
+
+#### 2.1. Модуль пользователей и аутентификации
+```php
+// Требуемая функциональность:
+- Регистрация/авторизация (Email + пароль)
+- OAuth2 через Google/Facebook
+- Подтверждение email
+- Восстановление пароля
+- Ролевая модель (ROLE_USER, ROLE_ADMIN, ROLE_MANAGER)
+- Профиль пользователя с историей заказов
+- Список желаний (избранное)
+```
+
+#### 2.2. Модуль каталога товаров
+```php
+// Сущности:
+- Product (товар)
+- Category (категория)
+- Brand (бренд)
+- ProductImage (изображения товара)
+- ProductSpecification (характеристики)
+- Review (отзывы и рейтинги)
+
+// Функциональность:
+- Древовидные категории
+- Фильтрация по характеристикам (память, диагональ, ОС и т.д.)
+- Поиск с автодополнением
+- Сортировка (по цене, популярности, новизне)
+- Пагинация
+- Сравнение товаров
+```
+
+#### 2.3. Модуль корзины и заказов
+```php
+// Сущности:
+- Cart (корзина)
+- CartItem (элемент корзины)
+- Order (заказ)
+- OrderItem (позиция заказа)
+- OrderStatus (статусы заказа)
+
+// Функциональность:
+- Добавление/удаление из корзины
+- Пересчет стоимости
+- Применение промокодов
+- Оформление заказа в 4 шага
+- История заказов
+- Отслеживание статуса заказа
+```
+
+#### 2.4. Модуль управления контентом
+```php
+// Сущности:
+- Page (статические страницы)
+- BlogPost (новости/статьи)
+- Banner (баннеры)
+- Promotion (акции)
+
+// Функциональность:
+- CRUD для всех сущностей
+- WYSIWYG редактор
+- Управление SEO-метаданными
+- Система скидок и промо-акций
+```
+
+#### 2.5. Административная панель
+```php
+// Модули админки:
+- Дашборд с аналитикой
+- Управление товарами и категориями
+- Управление заказами
+- Управление пользователями
+- Управление контентом
+- Отчеты по продажам
+- Система уведомлений
+```
+
+### 3. Детальные требования к сущностям
+
+#### 3.1. Product Entity
+```php
+/**
+ * @ORM\Entity
+ */
+class Product
+{
+    private ?int $id;
+    private string $name;
+    private string $slug;
+    private string $sku;
+    private string $description;
+    private float $price;
+    private ?float $oldPrice;
+    private int $stock;
+    private bool $isActive;
+    private Brand $brand;
+    private Category $category;
+    private Collection $specifications;
+    private Collection $images;
+    private Collection $reviews;
+    private \DateTime $createdAt;
+    private \DateTime $updatedAt;
+    
+    // Методы: getAverageRating(), isInStock(), getFinalPrice()
+}
+```
+
+#### 3.2. ProductSpecification Entity
+```php
+class ProductSpecification
+{
+    private ?int $id;
+    private string $name; // "Оперативная память"
+    private string $value; // "8 ГБ"
+    private string $unit; // "ГБ"
+    private Product $product;
+}
+```
+
+### 4. API эндпоинты (REST JSON API)
+
+```yaml
+# Публичное API:
+GET /api/products - список товаров с фильтрами
+GET /api/products/{id} - детали товара
+GET /api/categories - дерево категорий
+POST /api/cart/add - добавить в корзину
+POST /api/orders - создать заказ
+
+# Админ API:
+GET /api/admin/orders - список заказов
+PUT /api/admin/orders/{id}/status - изменить статус
+POST /api/admin/products - создать товар
+```
+
+### 5. Интеграции и сервисы
+
+#### 5.1. Платежная система
+```php
+// Сервис для работы с платежами
+class PaymentService
+{
+    public function createPayment(Order $order): PaymentLink;
+    public function handleWebhook(Request $request): void;
+    public function refund(Order $order): bool;
+}
+```
+
+#### 5.2. Email уведомления
+```php
+// Типы уведомлений:
+- Подтверждение регистрации
+- Подтверждение заказа
+- Изменение статуса заказа
+- Восстановление пароля
+- Рекламные рассылки
+```
+
+#### 5.3. Сервис поиска
+```php
+class SearchService
+{
+    public function indexProduct(Product $product): void;
+    public function searchProducts(string $query, array $filters): array;
+    public function getSearchSuggestions(string $query): array;
+}
+```
+
+### 6. Требования к безопасности
+
+```yaml
+security:
+    # CSRF защита для форм
+    # XSS защита через twig escaping
+    # SQL injection через Doctrine
+    # Защита от брутфорса для аутентификации
+    # Валидация всех входных данных
+    # Хеширование паролей с argon2
+```
+
+### 7. Производительность и оптимизация
+
+```php
+// Кеширование:
+- HTTP кеширование для статичных страниц
+- Кеширование запросов к БД
+- Кеширование результатов поиска
+- Оптимизация изображений
+- Ленивая загрузка для изображений
+
+// Оптимизации:
+- Индексы в БД для часто используемых полей
+- Пагинация везде где возможны большие наборы данных
+- Асинхронная обработка тяжелых операций
+```
+
+### 8. Docker конфигурация
+
+```dockerfile
+# docker-compose.yml структура:
+services:
+  nginx:
+  php-fpm:
+  mysql:
+  redis:
+  elasticsearch:
+  rabbitmq:
+  adminer:
+```
+
+### 9. Тестирование
+
+```php
+// Типы тестов:
+- Unit тесты для сервисов (PHPUnit)
+- Functional тесты для контроллеров
+- E2E тесты для критических путей (Playwright)
+- API тесты
+```
+
+### 10. Деплой и CI/CD
+
+```yaml
+# GitHub Actions workflow:
+- Запуск тестов
+- Статический анализ кода (PHPStan, Psalm)
+- Сборка Docker образов
+- Деплой на сервер
+- Миграции БД
+```
+
+## Дополнительные требования
+
+### 11. SEO оптимизация
+- ЧПУ для товаров и категорий
+- XML sitemap
+- Meta-теги (title, description, Open Graph)
+- Structured data (JSON-LD)
+- Robots.txt
+
+### 12. Аналитика
+- Google Analytics 4
+- Яндекс.Метрика
+- Отслеживание конверсий
+- Аналитика поведения пользователей
+
+### 13. Мультиязычность (опционально)
+- Поддержка русского/английского языков
+- Локализация интерфейса
+- Локализация контента
+
+## Критерии успешной реализации
+
+1. **Код качество**: Чистая архитектура, SOLID принципы, кодстайл PSR
+2. **Производительность**: Время загрузки страниц < 2 секунд
+3. **Безопасность**: Отсутствие уязвимостей OWASP Top 10
+4. **UX/UI**: Адаптивный дизайн, интуитивный интерфейс
+5. **Надежность**: Минимальное количество багов, обработка ошибок
+6. **Масштабируемость**: Возможность легко добавлять новый функционал
+
+## Пример команды для начала проекта
+
+```bash
+symfony new mobile-shop --webapp
+composer require doctrine/doctrine-bundle
+composer require symfony/maker-bundle --dev
+composer require twig/twig
+composer require symfony/security-bundle
+# ... остальные зависимости
+```
+
