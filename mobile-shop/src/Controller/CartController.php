@@ -17,7 +17,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 
 final class CartController extends AbstractController
 {
-    #[Route('/cart', name: 'app_cart')]
+    #[Route('/cart', name: 'app_cart', methods: ['GET'])]
     public function index(CartRepository $cartRepository): Response
     {
         $user = $this->getUser();
@@ -45,21 +45,37 @@ final class CartController extends AbstractController
         CartRepository $cartRepository,
         CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
-        $user = $this->getUser();
-        if (!$user) {
-            return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
-        }
+        try {
+            $user = $this->getUser();
+            if (!$user) {
+                return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
+            }
 
-        // Проверяем CSRF токен
-        $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_add', $token))) {
-            return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
-        }
+            // Проверяем CSRF токен
+            $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_add', $token))) {
+                return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
+            }
 
-        $quantity = $request->request->getInt('quantity', 1);
+            $quantity = $request->request->getInt('quantity', 1);
 
-        if ($quantity < 1) {
-            return new JsonResponse(['success' => false, 'message' => 'Некорректное количество'], 400);
+            if ($quantity < 1) {
+                return new JsonResponse(['success' => false, 'message' => 'Некорректное количество'], 400);
+            }
+
+            if ($quantity > 99) {
+                return new JsonResponse(['success' => false, 'message' => 'Максимальное количество - 99 шт.'], 400);
+            }
+
+            // Проверяем, что товар активен и доступен
+            if (!$product || !$product->isActive()) {
+                return new JsonResponse(['success' => false, 'message' => 'Товар не найден или недоступен'], 404);
+            }
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка валидации: ' . $e->getMessage()
+            ], 400);
         }
 
         $cart = $cartRepository->findOneBy(['user' => $user]);
@@ -94,7 +110,14 @@ final class CartController extends AbstractController
             $cart->addItem($cartItem);
         }
 
-        $cartRepository->save($cart, true);
+        try {
+            $cartRepository->save($cart, true);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при сохранении корзины: ' . $e->getMessage()
+            ], 500);
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -111,28 +134,43 @@ final class CartController extends AbstractController
         CartRepository $cartRepository,
         CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
-        $user = $this->getUser();
-        if (!$user || $cartItem->getCart()->getUser() !== $user) {
-            return new JsonResponse(['success' => false, 'message' => 'Доступ запрещен'], 403);
+        try {
+            $user = $this->getUser();
+            if (!$user) {
+                return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
+            }
+
+            if ($cartItem->getCart()->getUser() !== $user) {
+                return new JsonResponse(['success' => false, 'message' => 'Доступ запрещен'], 403);
+            }
+
+            // Проверяем CSRF токен
+            $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_remove', $token))) {
+                return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
+            }
+
+            $cart = $cartItem->getCart();
+
+            // Удаляем товар из корзины
+            $cart->removeItem($cartItem);
+
+            // Сохраняем изменения
+            $cartRepository->save($cart, true);
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Товар удален из корзины',
+                'cartTotal' => $cart->getTotal(),
+                'cartItemsCount' => $cart->getTotalItems()
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при удалении товара: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Проверяем CSRF токен
-        $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_remove', $token))) {
-            return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
-        }
-
-        $cart = $cartItem->getCart();
-        $cart->removeItem($cartItem);
-
-        $cartRepository->save($cart, true);
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Товар удален из корзины',
-            'cartTotal' => $cart->getTotal(),
-            'cartItemsCount' => $cart->getTotalItems()
-        ]);
     }
 
     #[Route('/cart/update/{id}', name: 'app_cart_update', methods: ['POST'])]
@@ -177,29 +215,38 @@ final class CartController extends AbstractController
         CartRepository $cartRepository,
         CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
-        $user = $this->getUser();
-        if (!$user) {
-            return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
+        try {
+            $user = $this->getUser();
+            if (!$user) {
+                return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
+            }
+
+            // Проверяем CSRF токен
+            $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_clear', $token))) {
+                return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
+            }
+
+            $cart = $cartRepository->findOneBy(['user' => $user]);
+
+            if ($cart) {
+                // Очищаем корзину
+                $cart->getItems()->clear();
+                $cartRepository->save($cart, true);
+            }
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Корзина очищена',
+                'cartTotal' => '0.00',
+                'cartItemsCount' => 0
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при очистке корзины: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Проверяем CSRF токен
-        $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('cart_clear', $token))) {
-            return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
-        }
-
-        $cart = $cartRepository->findOneBy(['user' => $user]);
-
-        if ($cart) {
-            $cart->getItems()->clear();
-            $cartRepository->save($cart, true);
-        }
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Корзина очищена',
-            'cartTotal' => '0.00',
-            'cartItemsCount' => 0
-        ]);
     }
 }

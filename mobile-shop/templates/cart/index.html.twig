@@ -3,6 +3,9 @@
 {% block title %}Корзина - Mobile Shop{% endblock %}
 
 {% block body %}
+    <meta name="csrf-token-cart-remove" content="{{ csrf_token('cart_remove') }}">
+    <meta name="csrf-token-cart-update" content="{{ csrf_token('cart_update') }}">
+    <meta name="csrf-token-cart-clear" content="{{ csrf_token('cart_clear') }}">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -39,7 +42,7 @@
                     </div>
                     <div class="card-body p-0">
                         {% for item in cart.items %}
-                            <div class="cart-item d-flex align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}">
+                            <div class="cart-item d-flex align-items-center p-3 {% if not loop.last %}border-bottom{% endif %}" data-item-id="{{ item.id }}" id="cart-item-{{ item.id }}">
                                 <div class="cart-item-image me-3">
                                     {% if item.product.mainImage %}
                                         <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
@@ -47,7 +50,7 @@
                                              style="width: 80px; height: 80px; object-fit: cover;"
                                              alt="{{ item.product.name }}">
                                     {% else %}
-                                        <img src="https://via.placeholder.com/80x80/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                        <img src="{{ asset('images/no-photo.png') }}"
                                              class="img-thumbnail"
                                              style="width: 80px; height: 80px; object-fit: cover;"
                                              alt="{{ item.product.name }}">
@@ -144,13 +147,15 @@
         function updateQuantity(itemId, newQuantity) {
             if (newQuantity < 1) return;
 
+            const csrfToken = document.querySelector('meta[name="csrf-token-cart-update"]').getAttribute('content');
+
             fetch(`{{ path('app_cart_update', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: `quantity=${newQuantity}`
+                body: `quantity=${newQuantity}&_token=${csrfToken}`
             })
             .then(response => response.json())
             .then(data => {
@@ -161,12 +166,12 @@
                     // Обновляем общую сумму в корзине
                     updateCartTotal(data.cartTotal, data.cartItemsCount);
                 } else {
-                    alert(data.message || 'Ошибка при обновлении количества');
+                    console.error(data.message || 'Ошибка при обновлении количества');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при обновлении количества');
+                console.error('Произошла ошибка при обновлении количества');
             });
         }
 
@@ -175,19 +180,34 @@
                 return;
             }
 
+            const csrfToken = document.querySelector('meta[name="csrf-token-cart-remove"]').getAttribute('content');
+
             fetch(`{{ path('app_cart_remove', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: `_token=${encodeURIComponent(csrfToken)}`
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     // Удаляем элемент из DOM
-                    const cartItem = document.getElementById(`cart-item-${itemId}`);
+                    const cartItem = document.querySelector(`[data-item-id="${itemId}"]`);
                     if (cartItem) {
                         cartItem.remove();
+                    } else {
+                        // Fallback: ищем по id если data-item-id не найден
+                        const fallbackItem = document.getElementById(`cart-item-${itemId}`);
+                        if (fallbackItem) {
+                            fallbackItem.remove();
+                        }
                     }
 
                     updateCartTotal(data.cartTotal, data.cartItemsCount);
@@ -197,12 +217,12 @@
                         location.reload();
                     }
                 } else {
-                    alert(data.message || 'Ошибка при удалении товара');
+                    console.error(data.message || 'Ошибка при удалении товара');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при удалении товара');
+                console.error('Произошла ошибка при удалении товара: ' + error.message);
             });
         }
 
@@ -211,23 +231,32 @@
                 return;
             }
 
+            const csrfToken = document.querySelector('meta[name="csrf-token-cart-clear"]').getAttribute('content');
+
             fetch('{{ path('app_cart_clear') }}', {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: `_token=${encodeURIComponent(csrfToken)}`
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message || 'Ошибка при очистке корзины');
+                    console.error(data.message || 'Ошибка при очистке корзины');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при очистке корзины');
+                console.error('Произошла ошибка при очистке корзины: ' + error.message);
             });
         }
 

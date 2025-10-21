@@ -94,7 +94,7 @@ class CartItem
 
     public function getTotal(): string
     {
-        return bcmul($this->price, $this->quantity, 2);
+        return number_format((float) $this->price * $this->quantity, 2, '.', '');
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable

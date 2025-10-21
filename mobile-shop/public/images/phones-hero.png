@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <rect width="600" height="400" fill="#007bff"/>
+  <g transform="translate(300, 200)">
+    <!-- Телефон -->
+    <rect x="-80" y="-150" width="160" height="300" rx="20" fill="#ffffff" stroke="#ffffff" stroke-width="2"/>
+    <!-- Экран -->
+    <rect x="-70" y="-140" width="140" height="240" rx="10" fill="#000000"/>
+    <!-- Камера -->
+    <circle cx="0" cy="-90" r="8" fill="#ffffff"/>
+    <!-- Кнопка домой -->
+    <circle cx="0" cy="120" r="15" fill="#ffffff" opacity="0.3"/>
+    <!-- Иконки приложений -->
+    <g fill="#ffffff" opacity="0.7">
+      <rect x="-50" y="-100" width="12" height="12" rx="2"/>
+      <rect x="-35" y="-100" width="12" height="12" rx="2"/>
+      <rect x="-20" y="-100" width="12" height="12" rx="2"/>
+      <rect x="-5" y="-100" width="12" height="12" rx="2"/>
+      <rect x="10" y="-100" width="12" height="12" rx="2"/>
+      <rect x="25" y="-100" width="12" height="12" rx="2"/>
+      <rect x="40" y="-100" width="12" height="12" rx="2"/>
+      <rect x="-50" y="-85" width="12" height="12" rx="2"/>
+      <rect x="-35" y="-85" width="12" height="12" rx="2"/>
+      <rect x="-20" y="-85" width="12" height="12" rx="2"/>
+      <rect x="-5" y="-85" width="12" height="12" rx="2"/>
+      <rect x="10" y="-85" width="12" height="12" rx="2"/>
+      <rect x="25" y="-85" width="12" height="12" rx="2"/>
+      <rect x="40" y="-85" width="12" height="12" rx="2"/>
+    </g>
+  </g>
+  <!-- Текст -->
+  <text x="300" y="350" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" text-anchor="middle" font-weight="bold">Мобильные телефоны</text>
+</svg>

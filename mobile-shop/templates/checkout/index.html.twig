@@ -1,20 +1,171 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello CheckoutController!{% endblock %}
+{% block title %}Оформление заказа - Mobile Shop{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-credit-card text-primary me-2"></i>
+                Оформление заказа
+            </h1>
+        </div>
+    </div>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <div class="row">
+        <!-- Информация о заказе -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-bag me-2"></i>
+                        Ваш заказ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Товар</th>
+                                    <th>Количество</th>
+                                    <th>Цена</th>
+                                    <th>Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if item.product.mainImage %}
+                                                    <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
+                                                         class="img-thumbnail me-3"
+                                                         style="width: 50px; height: 50px; object-fit: cover;"
+                                                         alt="{{ item.product.name }}">
+                                                {% else %}
+                                                    <img src="{{ asset('images/no-photo.png') }}"
+                                                         class="img-thumbnail me-3"
+                                                         style="width: 50px; height: 50px; object-fit: cover;"
+                                                         alt="{{ item.product.name }}">
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ item.product.name }}</h6>
+                                                    <small class="text-muted">{{ item.product.brand.name }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{{ item.price }} ₽</td>
+                                        <td class="fw-bold">{{ item.total }} ₽</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/home/alena/projects/symfony internet shop/mobile-shop/src/Controller/CheckoutController.php</code></li>
-        <li>Your template at <code>/home/alena/projects/symfony internet shop/mobile-shop/templates/checkout/index.html.twig</code></li>
-    </ul>
-</div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <strong>Итого к оплате:</strong>
+                        <strong class="text-primary fs-5">{{ total }} ₽</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Способы оплаты -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Способ оплаты
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="card" value="card" checked>
+                            <label class="form-check-label" for="card">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Банковской картой
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="sbp" value="sbp">
+                            <label class="form-check-label" for="sbp">
+                                <i class="fas fa-mobile-alt me-2"></i>
+                                Система быстрых платежей (СБП)
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                            <label class="form-check-label" for="bank_transfer">
+                                <i class="fas fa-university me-2"></i>
+                                Банковский перевод
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mt-4 btn-lg">
+                            <i class="fas fa-lock me-2"></i>
+                            Оплатить {{ total }} ₽
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Итого в сайдбаре -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>
+                        Детали заказа
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Товары ({{ cart.totalItems }} шт.):</span>
+                        <span>{{ total }} ₽</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Доставка:</span>
+                        <span class="text-success">Бесплатно</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>К оплате:</strong>
+                        <strong class="text-primary fs-5">{{ total }} ₽</strong>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        После оплаты вы получите подтверждение на email
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .table th {
+            border-top: none;
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+    </style>
 {% endblock %}

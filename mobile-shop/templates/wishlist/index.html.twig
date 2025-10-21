@@ -3,6 +3,8 @@
 {% block title %}Избранное - Mobile Shop{% endblock %}
 
 {% block body %}
+    <meta name="csrf-token-wishlist-remove" content="{{ csrf_token('wishlist_remove') }}">
+    <meta name="csrf-token-cart-add-wishlist" content="{{ csrf_token('cart_add') }}">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -47,12 +49,12 @@
                                                 <img src="{{ asset('uploads/products/' ~ item.product.mainImage) }}"
                                                      class="card-img-top"
                                                      alt="{{ item.product.name }}"
-                                                     onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                                     onerror="this.src='{{ asset('images/error-placeholder.png') }}'">
                                             {% else %}
-                                                <img src="https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
+                                                <img src="{{ asset('images/no-photo.png') }}"
                                                      class="card-img-top"
                                                      alt="{{ item.product.name }}"
-                                                     onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
+                                                     onerror="this.src='{{ asset('images/error-placeholder.png') }}'">
                                             {% endif %}
                                             {% if item.product.isFeatured %}
                                                 <div class="featured-badge">
@@ -122,46 +124,62 @@
                 return;
             }
 
+            const csrfToken = document.querySelector('meta[name="csrf-token-wishlist-remove"]').getAttribute('content');
+
             fetch(`{{ path('app_wishlist_remove', {'id': '__ITEM_ID__'}) }}`.replace('__ITEM_ID__', itemId), {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: `_token=${encodeURIComponent(csrfToken)}`
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message || 'Ошибка при удалении товара');
+                    console.error(data.message || 'Ошибка при удалении товара');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при удалении товара');
+                console.error('Произошла ошибка при удалении товара: ' + error.message);
             });
         }
 
         function addToCart(productId) {
+            const csrfToken = document.querySelector('meta[name="csrf-token-cart-add-wishlist"]').getAttribute('content');
+
             fetch(`{{ path('app_cart_add', {'id': '__PRODUCT_ID__'}) }}`.replace('__PRODUCT_ID__', productId), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: 'quantity=1'
+                body: `quantity=1&_token=${encodeURIComponent(csrfToken)}`
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    alert('Товар добавлен в корзину!');
+                    console.log('Товар добавлен в корзину!');
                 } else {
-                    alert(data.message || 'Ошибка при добавлении в корзину');
+                    console.error(data.message || 'Ошибка при добавлении в корзину');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при добавлении в корзину');
+                console.error('Произошла ошибка при добавлении в корзину: ' + error.message);
             });
         }
     </script>

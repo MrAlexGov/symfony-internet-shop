@@ -98,6 +98,9 @@ final class CompareController extends AbstractController
         $compare = $compareItem->getCompare();
         $compare->removeItem($compareItem);
 
+        // Полностью удаляем элемент из базы данных
+        $entityManager = $compareRepository->getEntityManager();
+        $entityManager->remove($compareItem);
         $compareRepository->save($compare, true);
 
         return new JsonResponse([
@@ -131,6 +134,9 @@ final class CompareController extends AbstractController
             foreach ($compare->getItems() as $item) {
                 if ($item->getProduct() === $product) {
                     $compare->removeItem($item);
+                    // Полностью удаляем элемент из базы данных
+                    $entityManager = $compareRepository->getEntityManager();
+                    $entityManager->remove($item);
                     $compareRepository->save($compare, true);
                     break;
                 }

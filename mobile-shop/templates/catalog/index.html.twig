@@ -217,16 +217,38 @@
                         <div class="col-md-4 mb-4">
                             <div class="card product-card h-100">
                                 <div class="product-image">
-                                    {% if product.mainImage %}
-                                        <img src="{{ asset('uploads/products/' ~ product.mainImage) }}"
-                                             class="card-img-top"
-                                             alt="{{ product.name }}">
-                                    {% else %}
-                                        <img src="https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9D%D0%B5%D1%82+%D1%84%D0%BE%D1%82%D0%BE"
-                                             class="card-img-top"
-                                             alt="{{ product.name }}"
-                                             onerror="this.src='https://via.placeholder.com/300x300/e9ecef/6c757d?text=%D0%9E%D1%88%D0%B8%D0%B1%D0%BA%D0%B0'">
-                                    {% endif %}
+                                    <div class="image-container" data-product-id="{{ product.id }}">
+                                        {% if product.mainImage %}
+                                            <img src="{{ asset('uploads/products/' ~ product.mainImage) }}"
+                                                 class="card-img-top product-img"
+                                                 alt="{{ product.name }}"
+                                                 loading="lazy"
+                                                 onerror="handleImageError(this);">
+                                        {% else %}
+                                            <div class="product-placeholder" style="display: flex;">
+                                                <div class="placeholder-content">
+                                                    <img src="{{ asset('images/product-placeholder.svg') }}"
+                                                         alt="Нет фото"
+                                                         style="width: 80px; height: 80px; opacity: 0.6;">
+                                                    <div class="product-info">
+                                                        <div class="brand-name">{{ product.brand.name }}</div>
+                                                        <div class="product-name">{{ product.name|length > 20 ? product.name|slice(0, 20) ~ '...' : product.name }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        <div class="product-placeholder" style="display: none;">
+                                            <div class="placeholder-content">
+                                                <img src="{{ asset('images/product-placeholder.svg') }}"
+                                                     alt="Нет фото"
+                                                     style="width: 80px; height: 80px; opacity: 0.6;">
+                                                <div class="product-info">
+                                                    <div class="brand-name">{{ product.brand.name }}</div>
+                                                    <div class="product-name">{{ product.name|length > 20 ? product.name|slice(0, 20) ~ '...' : product.name }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     {% if product.isFeatured %}
                                         <div class="featured-badge">
                                             <span class="badge bg-warning">
@@ -326,10 +348,89 @@
             position: relative;
         }
 
-        .product-image img {
+        .image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .product-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 0.375rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        .placeholder-content {
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .placeholder-content img {
+            margin-bottom: 15px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .product-info {
+            margin-top: 10px;
+        }
+
+        .brand-name {
+            font-size: 0.8rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .product-name {
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+            margin-top: 5px;
+            line-height: 1.2;
+        }
+
+        .product-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 3;
+        }
+
+        .product-image:hover .product-image-overlay {
+            opacity: 1;
         }
 
         .featured-badge {
@@ -354,9 +455,76 @@
 
 {% block javascripts %}
     <script>
+        // Кэш для проверки существования изображений
+        const imageCache = new Map();
+
+        // Функция для проверки существования изображения
+        async function checkImageExists(imageSrc) {
+            if (imageCache.has(imageSrc)) {
+                return imageCache.get(imageSrc);
+            }
+
+            try {
+                // Используем XMLHttpRequest для синхронной проверки
+                const xhr = new XMLHttpRequest();
+                xhr.open('HEAD', imageSrc, false); // Синхронный запрос
+                xhr.send();
+
+                const exists = xhr.status === 200;
+                imageCache.set(imageSrc, exists);
+                return exists;
+            } catch (error) {
+                imageCache.set(imageSrc, false);
+                return false;
+            }
+        }
+
+        // Функция для обработки ошибок загрузки изображений
+        function handleImageError(img) {
+            img.style.display = 'none';
+            const placeholder = img.parentNode.querySelector('.product-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        // Инициализация обработчиков для всех изображений товаров
+        function initializeProductImages() {
+            const productImages = document.querySelectorAll('.product-img');
+            productImages.forEach(img => {
+                // Добавляем обработчик ошибки
+                img.addEventListener('error', () => handleImageError(img));
+
+                // Проверяем, должна ли быть показана заглушка
+                const container = img.closest('.image-container');
+                const productId = container.dataset.productId;
+
+                // Если mainImage пустое, сразу показываем заглушку
+                {% for product in products.items %}
+                if ('{{ product.id }}' === productId && !'{{ product.mainImage }}') {
+                    img.style.display = 'none';
+                    const placeholder = container.querySelector('.product-placeholder');
+                    if (placeholder) {
+                        placeholder.style.display = 'flex';
+                    }
+                }
+                {% endfor %}
+            });
+        }
+
+        // Инициализируем изображения при загрузке страницы
+        document.addEventListener('DOMContentLoaded', initializeProductImages);
+
         function addToCart(productId) {
-            // Получаем CSRF токен
-            const token = '{{ csrf_token('cart_add') }}';
+            // Получаем CSRF токен из meta-тега или генерируем новый
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                         '{{ csrf_token('cart_add') }}';
+
+            // Показываем индикатор загрузки
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Добавление...';
+            button.disabled = true;
 
             fetch(`{{ path('app_cart_add', {'id': '__PRODUCT_ID__'}) }}`.replace('__PRODUCT_ID__', productId), {
                 method: 'POST',
@@ -366,23 +534,62 @@
                 },
                 body: 'quantity=1&_token=' + encodeURIComponent(token)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    alert('Товар добавлен в корзину!');
+                    // Показываем успех
+                    button.innerHTML = '<i class="fas fa-check me-1"></i>Добавлено!';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 1500);
+
+                    // Обновляем счетчики
                     updateNavigationCounters();
+
+                    // Показываем уведомление
+                    showNotification('Товар успешно добавлен в корзину!', 'success');
                 } else {
-                    alert(data.message || 'Ошибка при добавлении в корзину');
+                    throw new Error(data.message || 'Ошибка при добавлении в корзину');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при добавлении в корзину');
+                button.innerHTML = originalText;
+                button.disabled = false;
+
+                // Показываем ошибку
+                showNotification(error.message || 'Произошла ошибка при добавлении в корзину', 'error');
             });
         }
 
+        function showNotification(message, type) {
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Автоматически скрываем через 5 секунд
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
         function toggleWishlist(productId) {
-            const token = '{{ csrf_token('wishlist_toggle') }}';
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
             fetch(`{{ path('app_wishlist_toggle', {'id': '__PRODUCT_ID__'}) }}`.replace('__PRODUCT_ID__', productId), {
                 method: 'POST',
@@ -406,12 +613,12 @@
                     }
                     updateNavigationCounters();
                 } else {
-                    alert(data.message || 'Ошибка при работе с избранным');
+                    console.error(data.message || 'Ошибка при работе с избранным');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при работе с избранным');
+                console.error('Произошла ошибка при работе с избранным');
             });
         }
 
@@ -440,12 +647,12 @@
                     }
                     updateNavigationCounters();
                 } else {
-                    alert(data.message || 'Ошибка при работе со сравнением');
+                    console.error(data.message || 'Ошибка при работе со сравнением');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Произошла ошибка при работе со сравнением');
+                console.error('Произошла ошибка при работе со сравнением');
             });
         }
 

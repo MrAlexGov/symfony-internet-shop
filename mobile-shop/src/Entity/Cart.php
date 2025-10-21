@@ -23,7 +23,7 @@ class Cart
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private $items;
 
     public function __construct()
@@ -108,11 +108,11 @@ class Cart
 
     public function getTotal(): string
     {
-        $total = '0.00';
+        $total = 0.0;
         foreach ($this->items as $item) {
-            $total = bcadd($total, $item->getTotal(), 2);
+            $total += (float) $item->getTotal();
         }
-        return $total;
+        return number_format($total, 2, '.', '');
     }
 
     public function getTotalItems(): int

@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 final class WishlistController extends AbstractController
 {
@@ -68,7 +70,11 @@ final class WishlistController extends AbstractController
         $wishlistItem->setProduct($product);
 
         $wishlist->addItem($wishlistItem);
-        $wishlistRepository->save($wishlist, true);
+
+        // Сохраняем только WishlistItem, а не весь Wishlist
+        $entityManager = $wishlistRepository->getEntityManager();
+        $entityManager->persist($wishlistItem);
+        $entityManager->flush();
 
         return new JsonResponse([
             'success' => true,
@@ -80,23 +86,46 @@ final class WishlistController extends AbstractController
     #[Route('/wishlist/remove/{id}', name: 'app_wishlist_remove', methods: ['POST'])]
     public function remove(
         WishlistItem $wishlistItem,
-        WishlistRepository $wishlistRepository
+        Request $request,
+        WishlistRepository $wishlistRepository,
+        CsrfTokenManagerInterface $csrfTokenManager
     ): JsonResponse {
-        $user = $this->getUser();
-        if (!$user || $wishlistItem->getWishlist()->getUser() !== $user) {
-            return new JsonResponse(['success' => false, 'message' => 'Доступ запрещен'], 403);
+        try {
+            $user = $this->getUser();
+            if (!$user) {
+                return new JsonResponse(['success' => false, 'message' => 'Необходимо авторизоваться'], 401);
+            }
+
+            if ($wishlistItem->getWishlist()->getUser() !== $user) {
+                return new JsonResponse(['success' => false, 'message' => 'Доступ запрещен'], 403);
+            }
+
+            // Проверяем CSRF токен
+            $token = $request->request->get('_token') ?: $request->headers->get('X-CSRF-TOKEN');
+            if (!$csrfTokenManager->isTokenValid(new CsrfToken('wishlist_remove', $token))) {
+                return new JsonResponse(['success' => false, 'message' => 'Неверный токен безопасности'], 403);
+            }
+
+            $wishlist = $wishlistItem->getWishlist();
+            $wishlist->removeItem($wishlistItem);
+
+            // Полностью удаляем элемент из базы данных
+            $entityManager = $wishlistRepository->getEntityManager();
+            $entityManager->remove($wishlistItem);
+            $wishlistRepository->save($wishlist, true);
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Товар удален из избранного',
+                'wishlistCount' => $wishlist->getTotalItems()
+            ]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при удалении товара: ' . $e->getMessage()
+            ], 500);
         }
-
-        $wishlist = $wishlistItem->getWishlist();
-        $wishlist->removeItem($wishlistItem);
-
-        $wishlistRepository->save($wishlist, true);
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Товар удален из избранного',
-            'wishlistCount' => $wishlist->getTotalItems()
-        ]);
     }
 
     #[Route('/wishlist/toggle/{id}', name: 'app_wishlist_toggle', methods: ['POST'])]
@@ -123,6 +152,9 @@ final class WishlistController extends AbstractController
             foreach ($wishlist->getItems() as $item) {
                 if ($item->getProduct() === $product) {
                     $wishlist->removeItem($item);
+                    // Полностью удаляем элемент из базы данных
+                    $entityManager = $wishlistRepository->getEntityManager();
+                    $entityManager->remove($item);
                     $wishlistRepository->save($wishlist, true);
                     break;
                 }
@@ -141,7 +173,11 @@ final class WishlistController extends AbstractController
             $wishlistItem->setProduct($product);
 
             $wishlist->addItem($wishlistItem);
-            $wishlistRepository->save($wishlist, true);
+
+            // Сохраняем только WishlistItem, а не весь Wishlist
+            $entityManager = $wishlistRepository->getEntityManager();
+            $entityManager->persist($wishlistItem);
+            $entityManager->flush();
 
             return new JsonResponse([
                 'success' => true,

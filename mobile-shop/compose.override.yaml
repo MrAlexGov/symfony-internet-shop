@@ -1,7 +1,7 @@
 services:
   php:
     volumes:
-      - ./mobile-shop:/var/www/html:cached
+      - ./public:/var/www/html:cached
       # Для Xdebug в режиме разработки раскомментируйте следующую строку:
       # - ./xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     environment:
@@ -10,7 +10,7 @@ services:
 
   nginx:
     volumes:
-      - ./mobile-shop:/var/www/html:cached
+      - ./public:/var/www/html:cached
 
   database:
     ports:
@@ -30,7 +30,7 @@ services:
   adminer:
     image: adminer:4-standalone
     ports:
-      - "8081:8080"
+      - "8085:8080"
     depends_on:
       database:
         condition: service_healthy

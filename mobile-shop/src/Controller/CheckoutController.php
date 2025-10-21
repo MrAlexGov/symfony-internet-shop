@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\CartRepository;
 use App\Service\PaymentService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,15 +12,15 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
-    public function index(Request $request, PaymentService $paymentService): Response
+    public function index(Request $request, PaymentService $paymentService, CartRepository $cartRepository): Response
     {
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $cart = $user->getCart();
-        if ($cart->isEmpty()) {
+        $cart = $cartRepository->findOneBy(['user' => $user]);
+        if (!$cart || $cart->isEmpty()) {
             $this->addFlash('warning', 'Ваша корзина пуста');
             return $this->redirectToRoute('app_home');
         }
