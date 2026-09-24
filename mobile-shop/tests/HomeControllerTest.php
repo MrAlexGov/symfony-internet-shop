@@ -36,8 +36,9 @@ class HomeControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
 
-        // Проверяем наличие ссылок на каталог
-        $catalogLink = $crawler->filter('a[href="#catalog"]');
+        // Проверяем наличие ссылки на каталог (реальный роут app_catalog, не якорь)
+        $catalogUrl = $client->getContainer()->get('router')->generate('app_catalog');
+        $catalogLink = $crawler->filter('a[href="' . $catalogUrl . '"]');
         $this->assertGreaterThan(0, $catalogLink->count());
     }
 

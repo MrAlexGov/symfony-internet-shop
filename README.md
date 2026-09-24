@@ -1,259 +1,110 @@
-# Mobile Shop - Интернет-магазин мобильных телефонов
+# Mobile Shop — интернет-магазин мобильных телефонов (Symfony)
 
-Полнофункциональный интернет-магазин мобильных телефонов и аксессуаров, построенный на Symfony 6.4+ с современным стеком технологий.
+Пет-проект: витрина интернет-магазина мобильных телефонов и аксессуаров на
+Symfony 7.3 / PHP 8.3 / Doctrine ORM / MySQL. Сделан для отработки стека
+Symfony на практике (DDD-friendly структура контроллеров/сервисов/репозиториев,
+формы, Doctrine-миграции, фикстуры, функциональные тесты).
 
-## 🚀 Функциональные возможности
+## Что реально реализовано
 
-### 🛒 Основной функционал
-- **Каталог товаров** с фильтрацией и поиском
-- **Система аутентификации** пользователей (регистрация/авторизация)
-- **Корзина покупок** с расчетом стоимости
-- **Оформление заказов** с различными способами оплаты
-- **Административная панель** для управления контентом
-- **Аналитика и отчетность**
+- Каталог товаров: фильтры (поиск, категория, бренд, диапазон цены), сортировка,
+  пагинация (KnpPaginatorBundle).
+- Карточка товара, категории (древовидные), бренды.
+- Регистрация/авторизация пользователей (Symfony Security, ролевая модель
+  `ROLE_USER`/`ROLE_ADMIN`/`ROLE_MANAGER`), восстановление доступа к разделам
+  через `access_control`.
+- Корзина: добавление/обновление/удаление товаров (AJAX, CSRF-защищённые
+  запросы), пересчёт суммы.
+- Избранное (Wishlist) и сравнение товаров (Compare).
+- Docker Compose для локального окружения (nginx + php-fpm + MySQL, опционально
+  Redis/Adminer).
+- Функциональные тесты (PHPUnit + Symfony WebTestCase) на ключевые сценарии:
+  главная страница, каталог с фильтрами, страница товара (404 для несуществующих
+  slug), логин (успешный/неуспешный, редирект неавторизованных), добавление
+  товара в корзину end-to-end (логин → CSRF-токен → добавление → проверка в
+  корзине). CI (GitHub Actions) прогоняет тесты на каждый push.
 
-### 🔐 Система пользователей
-- Регистрация и авторизация пользователей
-- Профили пользователей с историей заказов
-- Ролевая модель (пользователь, администратор, менеджер)
-- Восстановление пароля
-- Подтверждение email
+## Чего нет (осознанно, честно обозначаю)
 
-### 📱 Управление каталогом
-- Древовидная структура категорий
-- Управление брендами и производителями
-- Детальные характеристики товаров
-- Система изображений товаров
-- Отзывы и рейтинги товаров
+- **Оформление заказа и оплата — только каркас/заглушка.** `CheckoutController`
+  и `PaymentService` формируют структуру интеграции со Stripe/ЮKassa, но
+  реального обращения к их API нет — это демонстрация архитектуры платёжного
+  сервиса (стратегия по методу оплаты, обработка вебхука), не рабочий платёж.
+  В базе также нет отдельной сущности `Order` — оформленный заказ не
+  персистится отдельно от корзины.
+- Административная панель — минимальный дашборд, полноценного CRUD для
+  заказов/пользователей/отчётов нет.
+- Характеристики товара и отзывы — есть в модели данных (`ProductSpecification`,
+  `Review`), но фикстуры их не заполняют, поэтому на карточке товара эти блоки
+  пустые без ручного наполнения БД.
+- Изображения товаров — только плейсхолдер (`no-photo.png`), реальных фото
+  товаров нет.
 
-### 💳 Платежная интеграция
-- Интеграция со Stripe
-- Поддержка ЮKassa
-- Обработка вебхуков
-- Система возвратов
+## Технический стек
 
-## 🛠 Технический стек
+- **Фреймворк**: Symfony 7.3, PHP 8.3
+- **ORM**: Doctrine ORM 3 + Doctrine Migrations
+- **База данных**: MySQL 8.0
+- **Фронтенд**: Twig, Bootstrap 5, Symfony UX (Turbo, Stimulus), Symfony Asset
+  Mapper (без сборщика вроде Webpack)
+- **Тесты**: PHPUnit 11, Symfony WebTestCase, Doctrine Fixtures Bundle
+- **Деплой**: Docker + Docker Compose, nginx
 
-- **Фреймворк**: Symfony 6.4+
-- **База данных**: MySQL 8.0+ / PostgreSQL 14+
-- **Кеширование**: Redis
-- **Фронтенд**: Bootstrap 5, JavaScript (ES6+)
-- **Шаблонизатор**: Twig
-- **ORM**: Doctrine ORM
-- **Деплой**: Docker + Docker Compose
-
-## 📋 Требования
-
-- PHP 8.2+
-- MySQL 8.0+ или PostgreSQL 14+
-- Composer
-- Node.js и npm (для сборки ассетов)
-- Docker и Docker Compose (опционально)
-
-## 🚀 Быстрый старт
-
-Проект уже создан и готов к запуску! У вас установлены все необходимые компоненты (PHP 8.3, Composer, Symfony CLI).
-
-### Локальный запуск (рекомендуется для вас)
+## Быстрый старт (Docker)
 
 ```bash
 cd mobile-shop
-composer install
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
-symfony server:start
-```
-
-После запуска откройте http://localhost:8000
-
-### Запуск с Docker (если установите позже)
-
-```bash
-cd mobile-shop
-./start.sh
-```
-
-### 2. Настройка базы данных
-
-Отредактируйте файл `.env` и настройте подключение к базе данных:
-
-```env
-DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3308/mobile_shop?serverVersion=8.0&charset=utf8mb4"
-```
-
-### 3. Установка зависимостей
-
-```bash
-composer install
-npm install
-npm run build
-```
-
-### 4. Создание базы данных и миграции
-
-```bash
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
-```
-
-### 5. Запуск сервера разработки
-
-```bash
-symfony server:start
-```
-
-Откройте браузер и перейдите по адресу `http://localhost:8000`
-
-## 🐳 Запуск с Docker
-
-### 1. Сборка и запуск контейнеров
-
-```bash
 docker compose up -d
+docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+docker compose exec php php bin/console doctrine:fixtures:load --no-interaction
 ```
 
-### 2. Выполнение миграций внутри контейнера
+Приложение: http://localhost:8080, Adminer: http://localhost:8085.
+
+## Быстрый старт (без Docker)
+
+Требуется PHP 8.2+, Composer, MySQL 8.0+/MariaDB.
 
 ```bash
-docker compose exec php php bin/console doctrine:migrations:migrate
+cd mobile-shop
+composer install
+cp .env .env.local   # и поправьте DATABASE_URL под свою БД
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate --no-interaction
+php bin/console doctrine:fixtures:load --no-interaction   # тестовые товары/юзеры
+symfony server:start   # или php -S 127.0.0.1:8000 -t public
 ```
 
-### 3. Доступ к приложению
+Тестовые пользователи из фикстур: `user@mobilshop.ru` / `user123` (обычный
+пользователь), `admin@mobilshop.ru` / `admin123` (роль `ROLE_ADMIN`).
 
-- Приложение: http://localhost:8080
-- Adminer (управление БД): http://localhost:8081
-- PHP контейнер: localhost:9000 (для Xdebug)
-
-## 📊 Административная панель
-
-После запуска приложения создайте пользователя-администратора:
-
-1. Зарегистрируйтесь как обычный пользователь
-2. Войдите в административную панель: `/admin`
-3. Используйте роль `ROLE_ADMIN` для доступа
-
-### Доступные разделы админки:
-- **Дашборд** - общая статистика и аналитика
-- **Товары** - управление каталогом товаров
-- **Заказы** - обработка и управление заказами
-- **Пользователи** - управление аккаунтами пользователей
-- **Отчеты** - аналитика продаж и поведения пользователей
-
-## 🧪 Тестирование
-
-Запуск тестов:
+## Тесты
 
 ```bash
+cd mobile-shop
+composer install
+php bin/console doctrine:database:create --env=test
+php bin/console doctrine:migrations:migrate --no-interaction --env=test
 php bin/phpunit
 ```
 
-Запуск конкретного тестового класса:
-
-```bash
-php bin/phpunit tests/HomeControllerTest.php
-```
-
-## 🔧 Конфигурация
-
-### Переменные окружения
-
-Основные настройки в файле `.env`:
-
-```env
-APP_ENV=dev
-APP_SECRET=your-secret-key-here
-DATABASE_URL=mysql://user:password@host:port/database
-MAILER_DSN=smtp://user:password@smtp.example.com
-```
-
-### Роли пользователей
-
-- `ROLE_USER` - обычный пользователь
-- `ROLE_ADMIN` - администратор системы
-- `ROLE_MANAGER` - менеджер (ограниченные права администратора)
-
-## 📁 Структура проекта
+## Структура проекта
 
 ```
 mobile-shop/
-├── assets/              # Статичные файлы (CSS, JS, изображения)
-├── bin/                 # Консольные команды Symfony
-├── config/              # Конфигурационные файлы
-│   └── packages/        # Конфигурация бандлов
-├── migrations/          # Миграции базы данных
-├── public/              # Публичная директория
+├── config/              # Конфигурация Symfony/Doctrine/Security
+├── migrations/          # Doctrine-миграции
 ├── src/
-│   ├── Controller/      # Контроллеры
-│   ├── Entity/          # Сущности Doctrine
-│   ├── Form/            # Формы Symfony
-│   ├── Repository/      # Репозитории
-│   ├── Service/         # Сервисы приложения
-│   └── Security/        # Кастомная аутентификация
-├── templates/           # Twig шаблоны
-├── tests/               # Тесты
-├── var/                 # Кеш, логи, сессии
-├── vendor/              # Зависимости Composer
-├── .env                 # Переменные окружения
-├── composer.json        # Зависимости проекта
-├── Dockerfile           # Конфигурация Docker
-├── docker-compose.yml   # Оркестрация контейнеров
-└── README.md           # Документация
+│   ├── Controller/      # Home/Catalog/Cart/Compare/Wishlist/Checkout/Login/...
+│   ├── DataFixtures/    # Тестовые категории/бренды/товары/пользователи
+│   ├── Entity/          # Product, Category, Brand, Cart, User, Review и др.
+│   ├── Repository/      # Doctrine-репозитории с кастомными выборками/фильтрами
+│   └── Service/         # PaymentService (заглушка), ImageService
+├── templates/           # Twig-шаблоны (Bootstrap 5)
+├── tests/               # Функциональные тесты (PHPUnit + WebTestCase)
+└── compose.yaml         # Docker Compose (nginx + php-fpm + MySQL)
 ```
 
-## 🔒 Безопасность
+## Лицензия
 
-- Защита от CSRF атак
-- Валидация всех входных данных
-- Хеширование паролей с использованием Argon2
-- Защита от SQL-инъекций через Doctrine ORM
-- Безопасная обработка файлов
-
-## 📈 Производительность
-
-- HTTP кеширование статичных ресурсов
-- Оптимизация запросов к базе данных
-- Ленивая загрузка изображений
-- Асинхронная обработка тяжелых операций
-
-## 🚀 Деплой
-
-### Продакшн окружение
-
-1. Настройте переменные окружения:
-```bash
-composer dump-env prod
-```
-
-2. Соберите ассеты:
-```bash
-npm run build
-```
-
-3. Выполните миграции:
-```bash
-php bin/console doctrine:migrations:migrate
-```
-
-## 🤝 Контрибьютинг
-
-1. Сделайте форк проекта
-2. Создайте ветку для вашей функциональности (`git checkout -b feature/amazing-feature`)
-3. Закоммитьте изменения (`git commit -m 'Add amazing feature'`)
-4. Отправьте изменения в ветку (`git push origin feature/amazing-feature`)
-5. Создайте Pull Request
-
-## 📝 Лицензия
-
-Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для получения дополнительной информации.
-
-## 🆘 Поддержка
-
-Если у вас возникли вопросы или проблемы:
-
-- Создайте Issue в репозитории
-- Напишите в поддержку: support@mobilshop.ru
-- Документация: https://symfony.com/doc
-
----
-
-⭐ Не забудьте поставить звездочку проекту, если он вам понравился!
+MIT.
