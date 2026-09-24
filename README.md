@@ -85,6 +85,7 @@ cd mobile-shop
 composer install
 php bin/console doctrine:database:create --env=test
 php bin/console doctrine:migrations:migrate --no-interaction --env=test
+php bin/console doctrine:fixtures:load --no-interaction --env=test   # часть тестов опирается на фикстуры
 php bin/phpunit
 ```
 
