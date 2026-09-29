@@ -6,14 +6,13 @@ use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
 use App\Repository\CartRepository;
-use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 final class CartController extends AbstractController
 {
@@ -43,7 +42,7 @@ final class CartController extends AbstractController
         Product $product,
         Request $request,
         CartRepository $cartRepository,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
     ): JsonResponse {
         try {
             $user = $this->getUser();
@@ -74,7 +73,7 @@ final class CartController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ошибка валидации: ' . $e->getMessage()
+                'message' => 'Ошибка валидации: '.$e->getMessage(),
             ], 400);
         }
 
@@ -115,7 +114,7 @@ final class CartController extends AbstractController
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ошибка при сохранении корзины: ' . $e->getMessage()
+                'message' => 'Ошибка при сохранении корзины: '.$e->getMessage(),
             ], 500);
         }
 
@@ -123,7 +122,7 @@ final class CartController extends AbstractController
             'success' => true,
             'message' => 'Товар добавлен в корзину',
             'cartTotal' => $cart->getTotal(),
-            'cartItemsCount' => $cart->getTotalItems()
+            'cartItemsCount' => $cart->getTotalItems(),
         ]);
     }
 
@@ -132,7 +131,7 @@ final class CartController extends AbstractController
         CartItem $cartItem,
         Request $request,
         CartRepository $cartRepository,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
     ): JsonResponse {
         try {
             $user = $this->getUser();
@@ -162,13 +161,12 @@ final class CartController extends AbstractController
                 'success' => true,
                 'message' => 'Товар удален из корзины',
                 'cartTotal' => $cart->getTotal(),
-                'cartItemsCount' => $cart->getTotalItems()
+                'cartItemsCount' => $cart->getTotalItems(),
             ]);
-
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ошибка при удалении товара: ' . $e->getMessage()
+                'message' => 'Ошибка при удалении товара: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -178,7 +176,7 @@ final class CartController extends AbstractController
         CartItem $cartItem,
         Request $request,
         CartRepository $cartRepository,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user || $cartItem->getCart()->getUser() !== $user) {
@@ -205,7 +203,7 @@ final class CartController extends AbstractController
             'message' => 'Количество обновлено',
             'itemTotal' => $cartItem->getTotal(),
             'cartTotal' => $cartItem->getCart()->getTotal(),
-            'cartItemsCount' => $cartItem->getCart()->getTotalItems()
+            'cartItemsCount' => $cartItem->getCart()->getTotalItems(),
         ]);
     }
 
@@ -213,7 +211,7 @@ final class CartController extends AbstractController
     public function clear(
         Request $request,
         CartRepository $cartRepository,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
     ): JsonResponse {
         try {
             $user = $this->getUser();
@@ -239,13 +237,12 @@ final class CartController extends AbstractController
                 'success' => true,
                 'message' => 'Корзина очищена',
                 'cartTotal' => '0.00',
-                'cartItemsCount' => 0
+                'cartItemsCount' => 0,
             ]);
-
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ошибка при очистке корзины: ' . $e->getMessage()
+                'message' => 'Ошибка при очистке корзины: '.$e->getMessage(),
             ], 500);
         }
     }

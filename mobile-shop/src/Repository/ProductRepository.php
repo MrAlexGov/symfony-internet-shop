@@ -16,20 +16,20 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-//    /**
-//     * @return Product[] Returns an array of Product objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    //    /**
+    //     * @return Product[] Returns an array of Product objects
+    //     */
+    //    public function findByExampleField($value): array
+    //    {
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->orderBy('p.id', 'ASC')
+    //            ->setMaxResults(10)
+    //            ->getQuery()
+    //            ->getResult()
+    //        ;
+    //    }
 
     public function findWithFilters(
         ?string $search = null,
@@ -39,7 +39,7 @@ class ProductRepository extends ServiceEntityRepository
         ?float $maxPrice = null,
         string $sort = 'name',
         string $order = 'ASC',
-        ?array $specifications = null
+        ?array $specifications = null,
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->where('p.isActive = :isActive')
@@ -48,7 +48,7 @@ class ProductRepository extends ServiceEntityRepository
         // Поиск по названию и описанию
         if ($search) {
             $qb->andWhere('(p.name LIKE :search OR p.description LIKE :search OR p.sku LIKE :search)')
-                ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%'.$search.'%');
         }
 
         // Фильтр по категории
@@ -64,12 +64,12 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         // Фильтр по цене
-        if ($minPrice !== null) {
+        if (null !== $minPrice) {
             $qb->andWhere('p.price >= :minPrice')
                 ->setParameter('minPrice', $minPrice);
         }
 
-        if ($maxPrice !== null) {
+        if (null !== $maxPrice) {
             $qb->andWhere('p.price <= :maxPrice')
                 ->setParameter('maxPrice', $maxPrice);
         }
@@ -78,11 +78,11 @@ class ProductRepository extends ServiceEntityRepository
         if ($specifications && !empty($specifications)) {
             foreach ($specifications as $index => $specFilter) {
                 if (!empty($specFilter['name']) && !empty($specFilter['value'])) {
-                    $qb->leftJoin('p.specifications', 'spec' . $index)
-                        ->andWhere('spec' . $index . '.name = :specName' . $index)
-                        ->andWhere('spec' . $index . '.value = :specValue' . $index)
-                        ->setParameter('specName' . $index, $specFilter['name'])
-                        ->setParameter('specValue' . $index, $specFilter['value']);
+                    $qb->leftJoin('p.specifications', 'spec'.$index)
+                        ->andWhere('spec'.$index.'.name = :specName'.$index)
+                        ->andWhere('spec'.$index.'.value = :specValue'.$index)
+                        ->setParameter('specName'.$index, $specFilter['name'])
+                        ->setParameter('specValue'.$index, $specFilter['value']);
                 }
             }
         }
@@ -97,7 +97,7 @@ class ProductRepository extends ServiceEntityRepository
         $allowedOrders = ['ASC', 'DESC'];
 
         if (in_array($sort, $allowedSortFields) && in_array(strtoupper($order), $allowedOrders)) {
-            $qb->orderBy('p.' . $sort, $order);
+            $qb->orderBy('p.'.$sort, $order);
         } else {
             $qb->orderBy('p.name', 'ASC');
         }

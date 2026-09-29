@@ -1,0 +1,133 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: src/Controller/CartController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Cart\:\:setUser\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/CartController.php
+
+		-
+			message: '#^Parameter \#2 \$categoryId of method App\\Repository\\ProductRepository\:\:findWithFilters\(\) expects int\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CatalogController.php
+
+		-
+			message: '#^Parameter \#3 \$brandId of method App\\Repository\\ProductRepository\:\:findWithFilters\(\) expects int\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CatalogController.php
+
+		-
+			message: '#^Parameter \#4 \$minPrice of method App\\Repository\\ProductRepository\:\:findWithFilters\(\) expects float\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CatalogController.php
+
+		-
+			message: '#^Parameter \#5 \$maxPrice of method App\\Repository\\ProductRepository\:\:findWithFilters\(\) expects float\|null, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/CatalogController.php
+
+		-
+			message: '#^Call to protected method getEntityManager\(\) of class Doctrine\\ORM\\EntityRepository\<App\\Entity\\Compare\>\.$#'
+			identifier: method.protected
+			count: 2
+			path: src/Controller/CompareController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Compare\:\:setUser\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/CompareController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getCart\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/NavigationController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getCompare\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/NavigationController.php
+
+		-
+			message: '#^Call to an undefined method Symfony\\Component\\Security\\Core\\User\\UserInterface\:\:getWishlist\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/NavigationController.php
+
+		-
+			message: '#^Call to protected method getEntityManager\(\) of class Doctrine\\ORM\\EntityRepository\<App\\Entity\\Wishlist\>\.$#'
+			identifier: method.protected
+			count: 4
+			path: src/Controller/WishlistController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method App\\Entity\\Wishlist\:\:setUser\(\) expects App\\Entity\\User, Symfony\\Component\\Security\\Core\\User\\UserInterface given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/WishlistController.php
+
+		-
+			message: '#^Property App\\Entity\\Product\:\:\$reviews is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: src/Entity/Product.php
+
+		-
+			message: '#^Property App\\Entity\\Product\:\:\$specifications is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: src/Entity/Product.php
+
+		-
+			message: '#^Variable \$specifications in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Repository/ProductRepository.php
+
+		-
+			message: '#^Property App\\Service\\ImageService\:\:\$placeholderImage is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ImageService.php
+
+		-
+			message: '#^Property App\\Service\\PaymentService\:\:\$httpClient is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/PaymentService.php
+
+		-
+			message: '#^Property App\\Service\\PaymentService\:\:\$stripeSecretKey is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/PaymentService.php
+
+		-
+			message: '#^Property App\\Service\\PaymentService\:\:\$yookassaSecretKey is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/PaymentService.php
+
+		-
+			message: '#^Property App\\Service\\PaymentService\:\:\$yookassaShopId is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/PaymentService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/bootstrap.php

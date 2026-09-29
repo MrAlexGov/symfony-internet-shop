@@ -112,6 +112,7 @@ class Cart
         foreach ($this->items as $item) {
             $total += (float) $item->getTotal();
         }
+
         return number_format($total, 2, '.', '');
     }
 
@@ -121,6 +122,7 @@ class Cart
         foreach ($this->items as $item) {
             $total += $item->getQuantity();
         }
+
         return $total;
     }
 

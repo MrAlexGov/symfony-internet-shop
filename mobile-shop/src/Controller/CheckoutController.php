@@ -22,6 +22,7 @@ final class CheckoutController extends AbstractController
         $cart = $cartRepository->findOneBy(['user' => $user]);
         if (!$cart || $cart->isEmpty()) {
             $this->addFlash('warning', 'Ваша корзина пуста');
+
             return $this->redirectToRoute('app_home');
         }
 
@@ -33,7 +34,7 @@ final class CheckoutController extends AbstractController
 
                 return $this->redirect($paymentLink->getUrl());
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Ошибка при создании платежа: ' . $e->getMessage());
+                $this->addFlash('error', 'Ошибка при создании платежа: '.$e->getMessage());
             }
         }
 
@@ -47,6 +48,7 @@ final class CheckoutController extends AbstractController
     public function success(): Response
     {
         $this->addFlash('success', 'Оплата прошла успешно! Ваш заказ обрабатывается.');
+
         return $this->redirectToRoute('app_profile');
     }
 
@@ -54,6 +56,7 @@ final class CheckoutController extends AbstractController
     public function cancel(): Response
     {
         $this->addFlash('warning', 'Оплата была отменена');
+
         return $this->redirectToRoute('app_checkout');
     }
 }

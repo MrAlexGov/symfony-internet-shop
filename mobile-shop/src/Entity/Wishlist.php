@@ -116,6 +116,7 @@ class Wishlist
                 return true;
             }
         }
+
         return false;
     }
 

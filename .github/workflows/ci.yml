@@ -54,6 +54,12 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Code style (PHP CS Fixer, @Symfony)
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Static analysis (PHPStan level 5)
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
       - name: Wait for MySQL
         run: |
           for i in $(seq 1 30); do

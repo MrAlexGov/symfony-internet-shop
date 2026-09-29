@@ -116,6 +116,7 @@ class Compare
                 return true;
             }
         }
+
         return false;
     }
 

@@ -6,11 +6,9 @@ use App\Entity\Compare;
 use App\Entity\CompareItem;
 use App\Entity\Product;
 use App\Repository\CompareRepository;
-use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class CompareController extends AbstractController
@@ -39,7 +37,7 @@ final class CompareController extends AbstractController
     #[Route('/compare/add/{id}', name: 'app_compare_add', methods: ['POST'])]
     public function add(
         Product $product,
-        CompareRepository $compareRepository
+        CompareRepository $compareRepository,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user) {
@@ -58,7 +56,7 @@ final class CompareController extends AbstractController
         if (!$compare->canAddMoreProducts()) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Максимум 4 товара для сравнения'
+                'message' => 'Максимум 4 товара для сравнения',
             ]);
         }
 
@@ -66,7 +64,7 @@ final class CompareController extends AbstractController
         if ($compare->containsProduct($product)) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Товар уже добавлен в сравнение'
+                'message' => 'Товар уже добавлен в сравнение',
             ]);
         }
 
@@ -81,14 +79,14 @@ final class CompareController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'Товар добавлен в сравнение',
-            'compareCount' => $compare->getTotalItems()
+            'compareCount' => $compare->getTotalItems(),
         ]);
     }
 
     #[Route('/compare/remove/{id}', name: 'app_compare_remove', methods: ['POST'])]
     public function remove(
         CompareItem $compareItem,
-        CompareRepository $compareRepository
+        CompareRepository $compareRepository,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user || $compareItem->getCompare()->getUser() !== $user) {
@@ -106,14 +104,14 @@ final class CompareController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'Товар удален из сравнения',
-            'compareCount' => $compare->getTotalItems()
+            'compareCount' => $compare->getTotalItems(),
         ]);
     }
 
     #[Route('/compare/toggle/{id}', name: 'app_compare_toggle', methods: ['POST'])]
     public function toggle(
         Product $product,
-        CompareRepository $compareRepository
+        CompareRepository $compareRepository,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user) {
@@ -146,32 +144,31 @@ final class CompareController extends AbstractController
                 'success' => true,
                 'message' => 'Товар удален из сравнения',
                 'inCompare' => false,
-                'compareCount' => $compare->getTotalItems()
-            ]);
-        } else {
-            // Проверяем лимит товаров для сравнения
-            if (!$compare->canAddMoreProducts()) {
-                return new JsonResponse([
-                    'success' => false,
-                    'message' => 'Максимум 4 товара для сравнения'
-                ]);
-            }
-
-            // Добавляем товар в сравнение
-            $compareItem = new CompareItem();
-            $compareItem->setCompare($compare);
-            $compareItem->setProduct($product);
-
-            $compare->addItem($compareItem);
-            $compareRepository->save($compare, true);
-
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Товар добавлен в сравнение',
-                'inCompare' => true,
-                'compareCount' => $compare->getTotalItems()
+                'compareCount' => $compare->getTotalItems(),
             ]);
         }
+        // Проверяем лимит товаров для сравнения
+        if (!$compare->canAddMoreProducts()) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Максимум 4 товара для сравнения',
+            ]);
+        }
+
+        // Добавляем товар в сравнение
+        $compareItem = new CompareItem();
+        $compareItem->setCompare($compare);
+        $compareItem->setProduct($product);
+
+        $compare->addItem($compareItem);
+        $compareRepository->save($compare, true);
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Товар добавлен в сравнение',
+            'inCompare' => true,
+            'compareCount' => $compare->getTotalItems(),
+        ]);
     }
 
     #[Route('/compare/clear', name: 'app_compare_clear', methods: ['POST'])]
@@ -192,7 +189,7 @@ final class CompareController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'Сравнение очищено',
-            'compareCount' => 0
+            'compareCount' => 0,
         ]);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Repository\ProductRepository;
-use App\Repository\CategoryRepository;
 use App\Repository\BrandRepository;
+use App\Repository\CategoryRepository;
+use App\Repository\ProductRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +19,7 @@ final class CatalogController extends AbstractController
         ProductRepository $productRepository,
         CategoryRepository $categoryRepository,
         BrandRepository $brandRepository,
-        PaginatorInterface $paginator
+        PaginatorInterface $paginator,
     ): Response {
         // Получаем параметры фильтрации из запроса
         $search = $request->query->get('search');
@@ -71,7 +71,7 @@ final class CatalogController extends AbstractController
     public function category(
         string $slug,
         CategoryRepository $categoryRepository,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
     ): Response {
         $category = $categoryRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
 
@@ -81,7 +81,7 @@ final class CatalogController extends AbstractController
 
         $products = $productRepository->findBy([
             'category' => $category,
-            'isActive' => true
+            'isActive' => true,
         ], ['name' => 'ASC']);
 
         return $this->render('catalog/category.html.twig', [
@@ -93,7 +93,7 @@ final class CatalogController extends AbstractController
     #[Route('/product/{slug}', name: 'app_product_show')]
     public function product(
         string $slug,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
     ): Response {
         $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
 
