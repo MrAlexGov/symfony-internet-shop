@@ -255,12 +255,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getFullName(): string
     {
-        return trim($this->firstName . ' ' . $this->lastName);
+        return trim($this->firstName.' '.$this->lastName);
     }
 
     public function isResetTokenExpired(): bool
     {
-        return $this->resetTokenExpiresAt === null || $this->resetTokenExpiresAt < new \DateTimeImmutable();
+        return null === $this->resetTokenExpiresAt || $this->resetTokenExpiresAt < new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -275,7 +275,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
+        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }

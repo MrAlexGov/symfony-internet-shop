@@ -16,7 +16,7 @@ final class NavigationController extends AbstractController
             return new JsonResponse([
                 'cartCount' => 0,
                 'wishlistCount' => 0,
-                'compareCount' => 0
+                'compareCount' => 0,
             ]);
         }
 
@@ -39,7 +39,7 @@ final class NavigationController extends AbstractController
         return new JsonResponse([
             'cartCount' => $cartCount,
             'wishlistCount' => $wishlistCount,
-            'compareCount' => $compareCount
+            'compareCount' => $compareCount,
         ]);
     }
 }

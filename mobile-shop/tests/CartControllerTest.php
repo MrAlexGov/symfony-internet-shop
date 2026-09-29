@@ -40,10 +40,10 @@ class CartControllerTest extends WebTestCase
 
         $client->loginUser($user);
 
-        $crawler = $client->request('GET', '/product/' . $product->getSlug());
+        $crawler = $client->request('GET', '/product/'.$product->getSlug());
         $csrfToken = $crawler->filter('meta[name="csrf-token"]')->attr('content');
 
-        $client->request('POST', '/cart/add/' . $product->getId(), [
+        $client->request('POST', '/cart/add/'.$product->getId(), [
             'quantity' => 1,
             '_token' => $csrfToken,
         ]);

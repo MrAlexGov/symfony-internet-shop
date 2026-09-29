@@ -17,7 +17,7 @@ final class RegistrationController extends AbstractController
     public function index(
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home');

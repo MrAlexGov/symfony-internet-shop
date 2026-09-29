@@ -2,9 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Product;
 use App\Entity\Brand;
 use App\Entity\Category;
+use App\Entity\Product;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 

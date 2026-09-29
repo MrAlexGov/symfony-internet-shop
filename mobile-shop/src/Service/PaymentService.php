@@ -16,7 +16,7 @@ class PaymentService
         HttpClientInterface $httpClient,
         string $stripeSecretKey = '',
         string $yookassaShopId = '',
-        string $yookassaSecretKey = ''
+        string $yookassaSecretKey = '',
     ) {
         $this->httpClient = $httpClient;
         $this->stripeSecretKey = $stripeSecretKey;
@@ -43,7 +43,7 @@ class PaymentService
 
         $paymentLink = new PaymentLink();
         $paymentLink->setUrl('https://stripe-payment-demo.com');
-        $paymentLink->setPaymentId('stripe_' . uniqid());
+        $paymentLink->setPaymentId('stripe_'.uniqid());
 
         return $paymentLink;
     }
@@ -55,7 +55,7 @@ class PaymentService
 
         $paymentLink = new PaymentLink();
         $paymentLink->setUrl('https://yookassa-payment-demo.com');
-        $paymentLink->setPaymentId('yookassa_' . uniqid());
+        $paymentLink->setPaymentId('yookassa_'.uniqid());
 
         return $paymentLink;
     }
@@ -80,6 +80,7 @@ class PaymentLink
     public function setUrl(string $url): self
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -91,6 +92,7 @@ class PaymentLink
     public function setPaymentId(string $paymentId): self
     {
         $this->paymentId = $paymentId;
+
         return $this;
     }
 }

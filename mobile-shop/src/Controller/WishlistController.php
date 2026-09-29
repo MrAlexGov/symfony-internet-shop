@@ -2,18 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
 use App\Entity\Wishlist;
 use App\Entity\WishlistItem;
-use App\Entity\Product;
 use App\Repository\WishlistRepository;
-use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 final class WishlistController extends AbstractController
 {
@@ -41,7 +40,7 @@ final class WishlistController extends AbstractController
     #[Route('/wishlist/add/{id}', name: 'app_wishlist_add', methods: ['POST'])]
     public function add(
         Product $product,
-        WishlistRepository $wishlistRepository
+        WishlistRepository $wishlistRepository,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user) {
@@ -60,7 +59,7 @@ final class WishlistController extends AbstractController
         if ($wishlist->containsProduct($product)) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Товар уже добавлен в избранное'
+                'message' => 'Товар уже добавлен в избранное',
             ]);
         }
 
@@ -79,7 +78,7 @@ final class WishlistController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'message' => 'Товар добавлен в избранное',
-            'wishlistCount' => $wishlist->getTotalItems()
+            'wishlistCount' => $wishlist->getTotalItems(),
         ]);
     }
 
@@ -88,7 +87,7 @@ final class WishlistController extends AbstractController
         WishlistItem $wishlistItem,
         Request $request,
         WishlistRepository $wishlistRepository,
-        CsrfTokenManagerInterface $csrfTokenManager
+        CsrfTokenManagerInterface $csrfTokenManager,
     ): JsonResponse {
         try {
             $user = $this->getUser();
@@ -117,13 +116,12 @@ final class WishlistController extends AbstractController
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Товар удален из избранного',
-                'wishlistCount' => $wishlist->getTotalItems()
+                'wishlistCount' => $wishlist->getTotalItems(),
             ]);
-
         } catch (\Exception $e) {
             return new JsonResponse([
                 'success' => false,
-                'message' => 'Ошибка при удалении товара: ' . $e->getMessage()
+                'message' => 'Ошибка при удалении товара: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -131,7 +129,7 @@ final class WishlistController extends AbstractController
     #[Route('/wishlist/toggle/{id}', name: 'app_wishlist_toggle', methods: ['POST'])]
     public function toggle(
         Product $product,
-        WishlistRepository $wishlistRepository
+        WishlistRepository $wishlistRepository,
     ): JsonResponse {
         $user = $this->getUser();
         if (!$user) {
@@ -164,27 +162,26 @@ final class WishlistController extends AbstractController
                 'success' => true,
                 'message' => 'Товар удален из избранного',
                 'inWishlist' => false,
-                'wishlistCount' => $wishlist->getTotalItems()
-            ]);
-        } else {
-            // Добавляем товар в избранное
-            $wishlistItem = new WishlistItem();
-            $wishlistItem->setWishlist($wishlist);
-            $wishlistItem->setProduct($product);
-
-            $wishlist->addItem($wishlistItem);
-
-            // Сохраняем только WishlistItem, а не весь Wishlist
-            $entityManager = $wishlistRepository->getEntityManager();
-            $entityManager->persist($wishlistItem);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'message' => 'Товар добавлен в избранное',
-                'inWishlist' => true,
-                'wishlistCount' => $wishlist->getTotalItems()
+                'wishlistCount' => $wishlist->getTotalItems(),
             ]);
         }
+        // Добавляем товар в избранное
+        $wishlistItem = new WishlistItem();
+        $wishlistItem->setWishlist($wishlist);
+        $wishlistItem->setProduct($product);
+
+        $wishlist->addItem($wishlistItem);
+
+        // Сохраняем только WishlistItem, а не весь Wishlist
+        $entityManager = $wishlistRepository->getEntityManager();
+        $entityManager->persist($wishlistItem);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Товар добавлен в избранное',
+            'inWishlist' => true,
+            'wishlistCount' => $wishlist->getTotalItems(),
+        ]);
     }
 }

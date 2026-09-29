@@ -240,7 +240,6 @@ class Product
         return $this;
     }
 
-
     public function getOperatingSystem(): ?string
     {
         return $this->operatingSystem;
@@ -419,7 +418,7 @@ class Product
             }
         }
 
-        return round($total / $this->reviews->filter(function($review) {
+        return round($total / $this->reviews->filter(function ($review) {
             return $review->isApproved() && $review->isActive();
         })->count(), 1);
     }
